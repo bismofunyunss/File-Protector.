@@ -1,6 +1,3 @@
-using File_Protector;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.ToolTip;
-
 namespace File_Protector
 {
     public partial class FileProtector : Form
@@ -34,51 +31,51 @@ namespace File_Protector
                         MessageBox.Show("Log in successful! Redirecting to homepage...", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         UserPasswrd_Inpt.Text = string.Empty;
                         this.Hide();
-                        using Homepage _Form = new ();
+                        using Homepage _Form = new();
                         _Form.ShowDialog();
                         this.Close();
-    }
+                    }
                     else if (!_LoginSuccessful)
                     {
                         MessageBox.Show("Log in failed! Please recheck your login credentials and try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
                 else if (!_userExists)
-{
+                {
 
-    throw new ArgumentException("Username does not exist.", nameof(Userinpt_Text));
-}
+                    throw new ArgumentException("Username does not exist.", nameof(Userinpt_Text));
+                }
             }
             catch (ArgumentException ex)
             {
-    MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-}
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
         private void Reg_Btn_Click(object sender, EventArgs e)
-{
-    this.Hide();
-    using Register_Form _Form = new();
-    _Form.ShowDialog();
-    this.Close();
-}
+        {
+            this.Hide();
+            using Register_Form _Form = new();
+            _Form.ShowDialog();
+            this.Close();
+        }
 
-private void unmaskPass_CheckedChanged(object sender, EventArgs e)
-{
-    if (unmaskPass.Checked)
-    {
-        UserPasswrd_Inpt.UseSystemPasswordChar = false;
-        return;
-    }
-    UserPasswrd_Inpt.UseSystemPasswordChar = true;
-}
-private void File_Protector_Load(object sender, EventArgs e)
-{
-    if (Properties.Settings.Default.userName != string.Empty)
-    {
-        Userinpt_Text.Text = Properties.Settings.Default.userName;
-        saveLoginCheckBox.Checked = true;
-    }
-}
+        private void unmaskPass_CheckedChanged(object sender, EventArgs e)
+        {
+            if (unmaskPass.Checked)
+            {
+                UserPasswrd_Inpt.UseSystemPasswordChar = false;
+                return;
+            }
+            UserPasswrd_Inpt.UseSystemPasswordChar = true;
+        }
+        private void File_Protector_Load(object sender, EventArgs e)
+        {
+            if (Properties.Settings.Default.userName != string.Empty)
+            {
+                Userinpt_Text.Text = Properties.Settings.Default.userName;
+                saveLoginCheckBox.Checked = true;
+            }
+        }
     }
 }
 #pragma warning restore

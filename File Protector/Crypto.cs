@@ -234,42 +234,42 @@ public static class Crypto
         try
         {
 
-                if (CipherText == null)
-                {
+            if (CipherText == null)
+            {
                 throw new ArgumentException("Value was empty or null.", nameof(CipherText));
-                }
-
-                ///<remarks>Set up parameters for AES.
-                ///</remarks>
-                using (aes)
-                {
-                    aes.BlockSize = BlockBitSize;
-                    aes.KeySize = KeyBitSize;
-                    aes.Mode = CipherMode.CBC;
-                    aes.Padding = PaddingMode.PKCS7;
-                };
-
-                var IV = new byte[IVBit / 8];
-
-                Buffer.BlockCopy(CipherText, 0, IV, 0, IV.Length);
-
-                var ciphertextOffset = SaltBytes.Length + IV.Length;
-                var cipherResult = new byte[CipherText.Length - SaltBytes.Length - IV.Length];
-
-                Buffer.BlockCopy(CipherText, ciphertextOffset, cipherResult, 0, cipherResult.Length);
-                ///<remarks>Begin decryption.</remarks>
-                ///
-                using (var decryptor = aes.CreateDecryptor(Key, IV))
-                using (var memStrm = new MemoryStream())
-                {
-                    using (var decryptStream = new CryptoStream(memStrm, decryptor, CryptoStreamMode.Write))
-                    using (var plainTextStream = new MemoryStream(cipherResult))
-                    {
-                        plainTextStream.CopyTo(decryptStream, plainTextStream.Capacity);
-                    }
-                    return (memStrm.ToArray());
-                }
             }
+
+            ///<remarks>Set up parameters for AES.
+            ///</remarks>
+            using (aes)
+            {
+                aes.BlockSize = BlockBitSize;
+                aes.KeySize = KeyBitSize;
+                aes.Mode = CipherMode.CBC;
+                aes.Padding = PaddingMode.PKCS7;
+            };
+
+            var IV = new byte[IVBit / 8];
+
+            Buffer.BlockCopy(CipherText, 0, IV, 0, IV.Length);
+
+            var ciphertextOffset = SaltBytes.Length + IV.Length;
+            var cipherResult = new byte[CipherText.Length - SaltBytes.Length - IV.Length];
+
+            Buffer.BlockCopy(CipherText, ciphertextOffset, cipherResult, 0, cipherResult.Length);
+            ///<remarks>Begin decryption.</remarks>
+            ///
+            using (var decryptor = aes.CreateDecryptor(Key, IV))
+            using (var memStrm = new MemoryStream())
+            {
+                using (var decryptStream = new CryptoStream(memStrm, decryptor, CryptoStreamMode.Write))
+                using (var plainTextStream = new MemoryStream(cipherResult))
+                {
+                    plainTextStream.CopyTo(decryptStream, plainTextStream.Capacity);
+                }
+                return (memStrm.ToArray());
+            }
+        }
         catch (System.Exception ex)
         {
             ErrorLogging.ErrorLog(ex);
