@@ -1,6 +1,6 @@
 ﻿namespace File_Protector
 {
-    partial class File_Protector
+    partial class FileProtector
     {
         /// <summary>
         ///  Required designer variable.
@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             groupBox1 = new GroupBox();
+            saveLoginCheckBox = new CheckBox();
             unmaskPass = new CheckBox();
             Reg_Btn = new Button();
             Login_Btn = new Button();
@@ -36,13 +37,12 @@
             Pass_Word = new Label();
             Userinpt_Text = new TextBox();
             User_Name = new Label();
-            checkBox1 = new CheckBox();
             groupBox1.SuspendLayout();
             SuspendLayout();
             // 
             // groupBox1
             // 
-            groupBox1.Controls.Add(checkBox1);
+            groupBox1.Controls.Add(saveLoginCheckBox);
             groupBox1.Controls.Add(unmaskPass);
             groupBox1.Controls.Add(Reg_Btn);
             groupBox1.Controls.Add(Login_Btn);
@@ -58,6 +58,16 @@
             groupBox1.TabIndex = 0;
             groupBox1.TabStop = false;
             groupBox1.Text = "Sign In";
+            // 
+            // saveLoginCheckBox
+            // 
+            saveLoginCheckBox.AutoSize = true;
+            saveLoginCheckBox.Location = new Point(6, 249);
+            saveLoginCheckBox.Name = "saveLoginCheckBox";
+            saveLoginCheckBox.Size = new Size(167, 29);
+            saveLoginCheckBox.TabIndex = 10;
+            saveLoginCheckBox.Text = "Remember Me";
+            saveLoginCheckBox.UseVisualStyleBackColor = true;
             // 
             // unmaskPass
             // 
@@ -132,16 +142,6 @@
             User_Name.TabIndex = 0;
             User_Name.Text = "Username";
             // 
-            // checkBox1
-            // 
-            checkBox1.AutoSize = true;
-            checkBox1.Location = new Point(6, 249);
-            checkBox1.Name = "checkBox1";
-            checkBox1.Size = new Size(167, 29);
-            checkBox1.TabIndex = 10;
-            checkBox1.Text = "Remember Me";
-            checkBox1.UseVisualStyleBackColor = true;
-            // 
             // File_Protector
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
@@ -151,6 +151,7 @@
             Controls.Add(groupBox1);
             Name = "File_Protector";
             Text = "File Protector";
+            Load += File_Protector_Load;
             groupBox1.ResumeLayout(false);
             groupBox1.PerformLayout();
             ResumeLayout(false);
@@ -166,6 +167,6 @@
         private Button Reg_Btn;
         private Button Login_Btn;
         private CheckBox unmaskPass;
-        private CheckBox checkBox1;
+        private CheckBox saveLoginCheckBox;
     }
 }

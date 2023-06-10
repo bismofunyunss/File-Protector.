@@ -2,7 +2,7 @@
 
 public static class ErrorLogging
 {
-    public static void ErrorLog(System.Exception ex)
+    public static void ErrorLog(Exception ex)
     {
         if (!File.Exists("ErrorLog.txt"))
             File.Create("ErrorLog.txt").Dispose();
@@ -11,19 +11,15 @@ public static class ErrorLogging
         {
             try
             {
-                using StreamWriter Writer = File.AppendText("ErrorLog.txt");
-                Writer.AutoFlush = true;
-                Writer.Write(DateTime.Now + " ");
-                Writer.Write(ex.Message);
-                Writer.Write(ex.InnerException);
-                Writer.Write(ex.StackTrace);
-                Writer.WriteLine();
-                Writer.WriteLine();
+                using StreamWriter writer = File.AppendText("ErrorLog.txt");
+                writer.AutoFlush = true;
+                writer.WriteLine($"{DateTime.Now} {ex.Message} {ex.InnerException} {ex.StackTrace}");
+                writer.WriteLine();
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 if (ex.InnerException == null || ex.StackTrace == null || ex.Message == null)
-                    ErrorLog(e);
+                    ErrorLog(new ArgumentException());
             }
         }
     }

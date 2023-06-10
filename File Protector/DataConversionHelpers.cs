@@ -5,44 +5,33 @@ public static class DataConversionHelpers
 {
     public static string? ByteArrayToHexString(byte[] Buffer)
     {
-        if (Buffer == null)
-            return null;
-        return Convert.ToHexString(Buffer, 0, Buffer.Length).ToLower(CultureInfo.CurrentCulture);
+        return Buffer != null ? Convert.ToHexString(Buffer, 0, Buffer.Length).ToLower(CultureInfo.CurrentCulture) : null;
     }
     public static byte[]? HexStringToByteArray(string Input)
     {
-        if (string.IsNullOrWhiteSpace(Input))
-            return null;
-        return Encoding.UTF8.GetBytes(Input);
+        return !string.IsNullOrWhiteSpace(Input) ? Encoding.UTF8.GetBytes(Input) : null;
     }
     public static string? StringToHex(byte[] Buffer)
     {
-        if (Buffer == null)
-            return null;
-        return Convert.ToHexString(Buffer, 0, Buffer.Length).ToLower(CultureInfo.CurrentCulture);
+        return Buffer != null ? Convert.ToHexString(Buffer, 0, Buffer.Length).ToLower(CultureInfo.CurrentCulture) : null;
     }
-    public static string? ByteArrayToString(byte[] Buffer)
+    public static string? ByteArrayToString(byte[] buffer)
     {
-        if (Buffer == null)
-            return null;
-        return Encoding.UTF8.GetString(Buffer);
+        return buffer != null ? Encoding.UTF8.GetString(buffer) : null;
     }
-    public static byte[]? StringToByteArray(string Input)
+
+    public static byte[]? StringToByteArray(string input)
     {
-        if (string.IsNullOrWhiteSpace(Input))
-            return null;
-        return Encoding.UTF8.GetBytes(Input);
+        return !string.IsNullOrWhiteSpace(input) ? Encoding.UTF8.GetBytes(input) : null;
     }
-    public static string? ByteArrayToBase64String(byte[] Buffer)
+
+    public static string? ByteArrayToBase64String(byte[] buffer)
     {
-        if (Buffer == null)
-            return null;
-        return Convert.ToBase64String(Buffer, 0, Buffer.Length);
+        return buffer != null ? Convert.ToBase64String(buffer) : null;
     }
-    public static byte[]? Base64StringToByteArray(string Input)
+
+    public static byte[]? Base64StringToByteArray(string input)
     {
-        if (string.IsNullOrWhiteSpace(Input))
-            return null;
-        return Convert.FromBase64String(Input);
+        return !string.IsNullOrWhiteSpace(input) ? Convert.FromBase64String(input) : null;
     }
 }

@@ -1,30 +1,236 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.IO.Compression;
 using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
+using System.IO;
+using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 
+#pragma warning disable
 namespace File_Protector
 {
     public partial class Homepage : Form
     {
+        private readonly Random random = new Random();
+        private bool fileOpened;
+        private string? loadedFile = string.Empty;
+        private string fileName = string.Empty;
+
         public Homepage()
         {
             InitializeComponent();
         }
 
+        private void rainbowLabel(Label label)
+        {
+            label.ForeColor = Color.FromArgb(random.Next(0, 255), random.Next(0, 255), random.Next(0, 255));
+            Thread.Sleep(150);
+        }
+
+        public string? Encrypt(string data, byte[] key)
+        {
+            byte[]? plainText = DataConversionHelpers.StringToByteArray(data);
+            try
+            {
+                var cipherText = Crypto.Encrypt(plainText, key);
+                if (cipherText == null)
+                    throw new CryptographicException("Value returned null.", nameof(cipherText));
+                return DataConversionHelpers.ByteArrayToBase64String(cipherText);
+            }
+            catch (CryptographicException ex)
+            {
+                ShowErrorAndLog(ex, "File encryption error.");
+            }
+            return null;
+        }
+
+        public string? Decrypt(string data, byte[] key)
+        {
+            try
+            {
+                var inputText = DataConversionHelpers.Base64StringToByteArray(data);
+                var result = Crypto.Decrypt(inputText, key);
+
+                if (result == null)
+                    throw new System.Exception("Decryption value returned empty or null.");
+
+                return Encoding.UTF8.GetString(result);
+            }
+            catch (System.Exception ex)
+            {
+                ShowErrorAndLog(ex, "File decryption error.");
+            }
+            return null;
+        }
         private void openFile_Click(object sender, EventArgs e)
         {
+            using var openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "Txt files(*.txt) | *.txt";
+            openFileDialog.FilterIndex = 1;
+            openFileDialog.ShowHiddenFiles = true;
+            openFileDialog.CheckFileExists = true;
+            openFileDialog.CheckPathExists = true;
+            var _appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var _rootFolder = Path.Combine(_appData, "User Data");
+            var path = Path.Combine(_appData, _rootFolder, "User Files", AuthenticateUser.CurrentLoggedInUser);
+            openFileDialog.RestoreDirectory = true;
+            openFileDialog.InitialDirectory = path;
 
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                fileName = openFileDialog.FileName;
+                try
+                {
+                    string compare = Path.GetExtension(fileName);
+                    if (compare != ".txt")
+                        throw new ArgumentException("Invalid file type.", openFileDialog.FileName);
+                    const int maxSize = 800_000_000;
+                    FileInfo info = new FileInfo(fileName);
+
+                    if (info.Length > maxSize)
+                        throw new OutOfMemoryException("Value exceeded maximum value.");
+
+                    byte[] buffer = new byte[info.Length];
+                    StringBuilder sb = new StringBuilder();
+                    using (var fs = new FileStream(fileName, FileMode.Open, FileAccess.Read))
+                    {
+                        fs.Read(buffer, 0, buffer.Length);
+                        loadedFile = sb.Append(Encoding.UTF8.GetString(buffer)).ToString();
+                        fileOpened = true;
+                    }
+                    if (!fileOpened)
+                    {
+                        MessageBox.Show("Error while trying to open file.", "Open File", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        currentStatusLbl.Text = "File read error.";
+                        currentStatusLbl.ForeColor = Color.Red;
+                    }
+                    else
+                    {
+                        MessageBox.Show("File Opened Successfully!", "Open File", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        currentStatusLbl.Text = "File Loaded! File size: " + info.Length.ToString() + " bytes!";
+                        currentStatusLbl.ForeColor = Color.LimeGreen;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ShowErrorAndLog(ex, "File read error.");
+                    throw;
+                }
+            }
         }
 
         private void Homepage_Load(object sender, EventArgs e)
         {
-            UserLog.LogUser();
+            if (!worker.IsBusy)
+                worker.RunWorkerAsync();
+            welcomeLbl.Text = "Welcome, " + AuthenticateUser.CurrentLoggedInUser + "!";
+        }
+
+        private void worker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            while (true)
+            {
+                rainbowLabel(welcomeLbl);
+            }
+        }
+
+        private void generateRnd32_Click(object sender, EventArgs e)
+        {
+            keyTxtBox.Text = Crypto.GenerateRndString(32);
+        }
+
+        private void encryptBtn_Click(object sender, EventArgs e)
+        {
+            string? inputString = loadedFile;
+            string keyString = keyTxtBox.Text;
+            byte[] Key = Encoding.UTF8.GetBytes(keyTxtBox.Text);
+            try
+            {
+                if (string.IsNullOrEmpty(keyString))
+                    throw new ArgumentException("Key value was empty or null.", nameof(Key));
+                if (string.IsNullOrEmpty(inputString))
+                    throw new ArgumentException("Input value was empty or null.", nameof(inputString));
+                string? encryptData = Encrypt(inputString, Key);
+                loadedFile = encryptData;
+                if (string.IsNullOrEmpty(encryptData))
+                    throw new System.Exception("Encryption value returned empty or null.");
+                currentStatusLbl.Text = "File Encrypted! New byte size: " + loadedFile.Length + " bytes!";
+            }
+            catch (Exception ex)
+            {
+                ShowErrorAndLog(ex, "File encryption error.");
+                throw;
+            }
+        }
+
+        private void decryptBtn_Click(object sender, EventArgs e)
+        {
+            string inputData = loadedFile;
+            byte[] Key = Encoding.UTF8.GetBytes(keyTxtBox.Text);
+            try
+            {
+                if (Key == null)
+                    throw new ArgumentException("Value was empty or null.", nameof(Key));
+                if (Key.Length != 256 / 8)
+                    throw new ArgumentException("Key must be 256 bits.", nameof(Key));
+                string? Text = Decrypt(inputData, Key);
+                if (string.IsNullOrEmpty(Text))
+                    throw new Exception("Value was empty or null.");
+                currentStatusLbl.Text = "File Decrypted! New byte size: " + loadedFile.Length + " bytes!";
+                loadedFile = Text;
+            }
+            catch (Exception ex)
+            {
+                ShowErrorAndLog(ex, "File decryption error.");
+                throw;
+            }
+        }
+
+        private void saveFile_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (!fileOpened)
+                    throw new ArgumentException("No file is opened.", nameof(loadedFile));
+                using var sf = new SaveFileDialog();
+                var _appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                var _rootFolder = Path.Combine(_appData, "User Data");
+                var path = Path.Combine(_appData, _rootFolder, "User Files", AuthenticateUser.CurrentLoggedInUser);
+                sf.FilterIndex = 1;
+                sf.ShowHiddenFiles = true;
+                sf.RestoreDirectory = true;
+                sf.InitialDirectory = path;
+                sf.Filter = "Txt files(*.txt) | *.txt";
+
+                if (sf.ShowDialog() == DialogResult.OK)
+                {
+                    fileName = sf.FileName;
+                    if (!string.IsNullOrEmpty(sf.FileName))
+                    {
+                        using (StreamWriter sw = new StreamWriter(sf.FileName))
+                            sw.Write(loadedFile);
+                    }
+                    else
+                        throw new ArgumentException("Value returned null or empty.", nameof(sf.FileName));
+
+                    MessageBox.Show("File Saved Successfully!", "Save File", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    currentStatusLbl.Text = "Idle...";
+                    currentStatusLbl.ForeColor = Color.WhiteSmoke;
+                    loadedFile = null;
+                    fileOpened = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowErrorAndLog(ex, "File save error.");
+                throw;
+            }
+        }
+        private void ShowErrorAndLog(Exception ex, string errorMessage)
+        {
+            MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            ErrorLogging.ErrorLog(ex);
+            currentStatusLbl.Text = errorMessage;
+            currentStatusLbl.ForeColor = Color.Red;
         }
     }
 }
+#pragma warning restore

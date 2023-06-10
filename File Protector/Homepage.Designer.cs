@@ -38,7 +38,9 @@
             encryptBtn = new Button();
             decryptBtn = new Button();
             welcomeLbl = new Label();
-            label1 = new Label();
+            statusLbl = new Label();
+            worker = new System.ComponentModel.BackgroundWorker();
+            currentStatusLbl = new Label();
             authKeyBox.SuspendLayout();
             controlsBox.SuspendLayout();
             SuspendLayout();
@@ -52,7 +54,7 @@
             authKeyBox.ForeColor = Color.WhiteSmoke;
             authKeyBox.Location = new Point(12, 12);
             authKeyBox.Name = "authKeyBox";
-            authKeyBox.Size = new Size(446, 160);
+            authKeyBox.Size = new Size(588, 154);
             authKeyBox.TabIndex = 5;
             authKeyBox.TabStop = false;
             authKeyBox.Text = "Key / Hash";
@@ -66,10 +68,11 @@
             generateRnd32.ForeColor = Color.WhiteSmoke;
             generateRnd32.Location = new Point(7, 94);
             generateRnd32.Name = "generateRnd32";
-            generateRnd32.Size = new Size(432, 41);
+            generateRnd32.Size = new Size(575, 41);
             generateRnd32.TabIndex = 6;
             generateRnd32.Text = "&Generate Cryptographically Strong Key";
             generateRnd32.UseVisualStyleBackColor = false;
+            generateRnd32.Click += generateRnd32_Click;
             // 
             // enterpassLabel
             // 
@@ -88,7 +91,7 @@
             keyTxtBox.Location = new Point(7, 55);
             keyTxtBox.Multiline = true;
             keyTxtBox.Name = "keyTxtBox";
-            keyTxtBox.Size = new Size(432, 33);
+            keyTxtBox.Size = new Size(575, 33);
             keyTxtBox.TabIndex = 2;
             keyTxtBox.Text = "Key must be 32 characters long.";
             keyTxtBox.UseSystemPasswordChar = true;
@@ -101,9 +104,9 @@
             controlsBox.Controls.Add(decryptBtn);
             controlsBox.Font = new Font("Segoe UI Black", 9F, FontStyle.Bold, GraphicsUnit.Point);
             controlsBox.ForeColor = Color.WhiteSmoke;
-            controlsBox.Location = new Point(12, 178);
+            controlsBox.Location = new Point(12, 172);
             controlsBox.Name = "controlsBox";
-            controlsBox.Size = new Size(446, 224);
+            controlsBox.Size = new Size(588, 224);
             controlsBox.TabIndex = 6;
             controlsBox.TabStop = false;
             controlsBox.Text = "Controls";
@@ -117,10 +120,11 @@
             saveFile.ForeColor = Color.WhiteSmoke;
             saveFile.Location = new Point(7, 166);
             saveFile.Name = "saveFile";
-            saveFile.Size = new Size(432, 41);
+            saveFile.Size = new Size(575, 41);
             saveFile.TabIndex = 5;
             saveFile.Text = "&Save Output";
             saveFile.UseVisualStyleBackColor = false;
+            saveFile.Click += saveFile_Click;
             // 
             // openFile
             // 
@@ -131,7 +135,7 @@
             openFile.ForeColor = Color.WhiteSmoke;
             openFile.Location = new Point(7, 119);
             openFile.Name = "openFile";
-            openFile.Size = new Size(432, 41);
+            openFile.Size = new Size(575, 41);
             openFile.TabIndex = 4;
             openFile.Text = "&Import Text File";
             openFile.UseVisualStyleBackColor = false;
@@ -146,10 +150,11 @@
             encryptBtn.ForeColor = Color.WhiteSmoke;
             encryptBtn.Location = new Point(7, 25);
             encryptBtn.Name = "encryptBtn";
-            encryptBtn.Size = new Size(432, 41);
+            encryptBtn.Size = new Size(575, 41);
             encryptBtn.TabIndex = 2;
             encryptBtn.Text = "&Encrypt";
             encryptBtn.UseVisualStyleBackColor = false;
+            encryptBtn.Click += encryptBtn_Click;
             // 
             // decryptBtn
             // 
@@ -160,40 +165,59 @@
             decryptBtn.ForeColor = Color.WhiteSmoke;
             decryptBtn.Location = new Point(7, 72);
             decryptBtn.Name = "decryptBtn";
-            decryptBtn.Size = new Size(432, 41);
+            decryptBtn.Size = new Size(575, 41);
             decryptBtn.TabIndex = 3;
             decryptBtn.Text = "&Decrypt";
             decryptBtn.UseVisualStyleBackColor = false;
+            decryptBtn.Click += decryptBtn_Click;
             // 
             // welcomeLbl
             // 
             welcomeLbl.AutoSize = true;
             welcomeLbl.Font = new Font("Segoe UI Black", 9F, FontStyle.Bold, GraphicsUnit.Point);
             welcomeLbl.ForeColor = Color.WhiteSmoke;
-            welcomeLbl.Location = new Point(12, 405);
+            welcomeLbl.Location = new Point(12, 399);
             welcomeLbl.Name = "welcomeLbl";
             welcomeLbl.Size = new Size(139, 25);
             welcomeLbl.TabIndex = 7;
             welcomeLbl.Text = "Welcome, null";
             // 
-            // label1
+            // statusLbl
             // 
-            label1.AutoSize = true;
-            label1.Font = new Font("Segoe UI Black", 9F, FontStyle.Bold, GraphicsUnit.Point);
-            label1.ForeColor = Color.WhiteSmoke;
-            label1.Location = new Point(12, 430);
-            label1.Name = "label1";
-            label1.Size = new Size(124, 25);
-            label1.TabIndex = 8;
-            label1.Text = "Status :: Idle";
+            statusLbl.AutoSize = true;
+            statusLbl.Font = new Font("Segoe UI Black", 9F, FontStyle.Bold, GraphicsUnit.Point);
+            statusLbl.ForeColor = Color.WhiteSmoke;
+            statusLbl.Location = new Point(12, 424);
+            statusLbl.Name = "statusLbl";
+            statusLbl.Size = new Size(85, 25);
+            statusLbl.TabIndex = 8;
+            statusLbl.Text = "Status ::";
+            // 
+            // worker
+            // 
+            worker.WorkerSupportsCancellation = true;
+            worker.DoWork += worker_DoWork;
+            // 
+            // currentStatusLbl
+            // 
+            currentStatusLbl.AutoSize = true;
+            currentStatusLbl.Font = new Font("Segoe UI Black", 9F, FontStyle.Bold, GraphicsUnit.Point);
+            currentStatusLbl.ForeColor = Color.WhiteSmoke;
+            currentStatusLbl.Location = new Point(103, 424);
+            currentStatusLbl.Name = "currentStatusLbl";
+            currentStatusLbl.Size = new Size(64, 25);
+            currentStatusLbl.TabIndex = 9;
+            currentStatusLbl.Text = "Idle...";
+            currentStatusLbl.UseWaitCursor = true;
             // 
             // Homepage
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.ControlDarkDark;
-            ClientSize = new Size(471, 466);
-            Controls.Add(label1);
+            ClientSize = new Size(612, 468);
+            Controls.Add(currentStatusLbl);
+            Controls.Add(statusLbl);
             Controls.Add(welcomeLbl);
             Controls.Add(controlsBox);
             Controls.Add(authKeyBox);
@@ -219,6 +243,8 @@
         private Button encryptBtn;
         private Button decryptBtn;
         private Label welcomeLbl;
-        private Label label1;
+        private Label statusLbl;
+        private System.ComponentModel.BackgroundWorker worker;
+        private Label currentStatusLbl;
     }
 }

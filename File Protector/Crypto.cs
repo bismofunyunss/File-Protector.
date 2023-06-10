@@ -1,49 +1,68 @@
 ﻿using System.IO;
 using System.Security.Cryptography;
 using System.Text;
-
+using Konscious.Security.Cryptography;
 public static class Crypto
 {
     private const int _keySize = 512 / 8;
-    private const int _iterations = 50_500_000;
-
+    private const int _iterations = 50;
+    private const double _memorySize = 1024 * 1024 * 7.5; //7.5MB
     private static readonly HashAlgorithmName _hashAlgorithm = HashAlgorithmName.SHA512;
 
-    private static string? _Salt = string.Empty;
-    private static string? _Hash = string.Empty;
+    private static string _Salt = string.Empty;
+    private static string _Hash = string.Empty;
 
-    public static string? Hash { get { return _Hash; } set { _Hash = value; } }
-    public static string? Salt { get { return _Salt; } set { _Salt = value; } }
+    public static string Hash
+    {
+        get { return _Hash; }
+        set { _Hash = value; }
+    }
+
+    public static string Salt
+    {
+        get { return _Salt; }
+        set { _Salt = value; }
+    }
+
     public static string HashPassword(string password, byte[] salt)
     {
+        /// <summary>
+        /// This method is obsolete. Moving over to Argon2id
+        /// </summary>
         var hash = Rfc2898DeriveBytes.Pbkdf2(Encoding.UTF8.GetBytes(password), salt, _iterations, _hashAlgorithm, _keySize);
         return Convert.ToHexString(hash);
     }
+
+    public static string HashPasswordV2(string password, byte[] salt)
+    {
+        using var _argon2 = new Argon2i(Encoding.UTF8.GetBytes(password))
+        {
+            Salt = salt,
+            DegreeOfParallelism = Environment.ProcessorCount,
+            Iterations = _iterations,
+            MemorySize = (int)_memorySize
+        };
+        return Convert.ToHexString(_argon2.GetBytes(_keySize));
+    }
     public static bool ComparePassword(string hash)
     {
-        string? _CompareHash = Hash;
+        string _CompareHash = Hash;
 
         if (_CompareHash != null)
             return CryptographicOperations.FixedTimeEquals(Convert.FromHexString(_CompareHash), Convert.FromHexString(hash));
 
         return false;
     }
-
-
     /// <summary>
     /// Create cryptography classes
     /// </summary>
     private static readonly RandomNumberGenerator rndNum = RandomNumberGenerator.Create();
     private static readonly Aes aes = Aes.Create();
     /// <summary>
-    /// Hash and salt sizes.
+    /// Salt size.
     /// </summary>
-    private const int HashBitSize = 512;
     private const int SaltBitSize = 512;
     private static byte[] SaltBytes = new byte[SaltBitSize / 8];
-    private static byte[]? HashBytes = new byte[HashBitSize / 8];
-    private static byte[] hashSalt = Array.Empty<byte>();
-    private static byte[] HashedValue = Array.Empty<byte>();
     /// <summary>
     /// AES values.
     /// </summary>
@@ -58,15 +77,14 @@ public static class Crypto
     /// <returns>A random string based on the parameter "Size".</returns>
     public static string GenerateRndString(int size)
     {
-        string result = string.Empty;
         char[] alphaNumeric = @"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()-_=+[{]};:'|""\<,.>/?".ToCharArray();
-
+        StringBuilder result = new StringBuilder(size);
         for (int i = 0; i < size; i++)
         {
             int index = BoundedInt(0, alphaNumeric.Length);
-            result += alphaNumeric[index];
+            result.Append(alphaNumeric[index]);
         }
-        return result;
+        return result.ToString();
     }
     /// <summary>
     /// Generates a random integer using the random number generator class.
@@ -119,7 +137,6 @@ public static class Crypto
         var IV = RndByteSized(IVBit / 8);
         SaltBytes = RndByteSized(SaltBitSize / 8);
         byte[] CipherText = Array.Empty<byte>();
-        hashSalt = RndByteSized(HashBitSize / 8);
         ///</remarks>
         ///<remarks>Check parameters.
         ///
@@ -189,16 +206,13 @@ public static class Crypto
         try
         {
             byte[] prependItems = new byte[IV.Length + SaltBytes.Length + CipherText.Length];
-            using (var encryptStream = new MemoryStream(prependItems))
-            {
-                Buffer.BlockCopy(IV, 0, prependItems, 0, IV.Length);
-                Buffer.BlockCopy(SaltBytes, 0, prependItems, IV.Length, SaltBytes.Length);
-                Buffer.BlockCopy(CipherText, 0, prependItems, IV.Length + SaltBytes.Length, CipherText.Length);
 
-                prependItems.CopyTo(encryptStream.ToArray(), 0);
-                Key = null;
-                return encryptStream.ToArray();
-            }
+            Buffer.BlockCopy(IV, 0, prependItems, 0, IV.Length);
+            Buffer.BlockCopy(SaltBytes, 0, prependItems, IV.Length, SaltBytes.Length);
+            Buffer.BlockCopy(CipherText, 0, prependItems, IV.Length + SaltBytes.Length, CipherText.Length);
+
+            Key = null;
+            return prependItems;
         }
         catch (System.Exception ex)
         {

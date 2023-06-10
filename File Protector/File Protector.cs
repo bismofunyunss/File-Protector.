@@ -1,3 +1,5 @@
+using System.Security;
+
 namespace File_Protector
 {
     public partial class FileProtector : Form
@@ -12,7 +14,6 @@ namespace File_Protector
             bool _userExists = AuthenticateUser.UserExists(Userinpt_Text.Text);
             if (saveLoginCheckBox.Checked)
             {
-                Properties.Settings.Default.passWord = UserPasswrd_Inpt.Text;
                 Properties.Settings.Default.userName = Userinpt_Text.Text;
                 Properties.Settings.Default.Save();
             }
@@ -21,9 +22,8 @@ namespace File_Protector
                 if (_userExists)
                 {
                     AuthenticateUser.GetUserInfo(Userinpt_Text.Text);
-                    var _hashedInput = Crypto.HashPassword(UserPasswrd_Inpt.Text, Convert.FromBase64String(Crypto.Salt));
+                    var _hashedInput = Crypto.HashPasswordV2(UserPasswrd_Inpt.Text, Convert.FromBase64String(Crypto.Salt));
                     var _LoginSuccessful = Crypto.ComparePassword(_hashedInput);
-
                     if (_LoginSuccessful)
                     {
                         UserLog.LogUser(Userinpt_Text.Text);
@@ -75,9 +75,9 @@ namespace File_Protector
             if (Properties.Settings.Default.userName != string.Empty)
             {
                 Userinpt_Text.Text = Properties.Settings.Default.userName;
-                UserPasswrd_Inpt.Text = Properties.Settings.Default.passWord;
                 saveLoginCheckBox.Checked = true;
             }
         }
     }
 }
+#pragma warning restore
