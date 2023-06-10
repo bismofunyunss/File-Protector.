@@ -1,3 +1,6 @@
+using File_Protector;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.ToolTip;
+
 namespace File_Protector
 {
     public partial class FileProtector : Form
@@ -8,48 +11,12 @@ namespace File_Protector
         }
 #pragma warning disable
         private void Login_Btn_Click(object sender, EventArgs e)
+        {
+            bool _userExists = AuthenticateUser.UserExists(Userinpt_Text.Text);
+            if (saveLoginCheckBox.Checked)
+            {
                 Properties.Settings.Default.userName = Userinpt_Text.Text;
                 Properties.Settings.Default.Save();
-                var path = Path.Combine(_appData, _rootFolder, "User Data", "UserInfo.txt");
-                if (!File.Exists(path))
-                    throw new IOException("File does not exist.");
-
-                string[] lines = File.ReadAllLines(path);
-                for (int i = 0; i < lines.Length; i++)
-                    if (lines[i] == userName)
-                    {
-                        AuthenticateUser._currentLoggedInUser = lines[i];
-                        return true;
-
-                    }
-                return false;
-                var path = Path.Combine(_appData, _rootFolder, "User Data", "UserInfo.txt");
-                if (!File.Exists(path))
-                    throw new IOException("File does not exist.");
-
-                string[] lines = File.ReadAllLines(path);
-                for (int i = 0; i < lines.Length; i++)
-                    if (lines[i] == userName)
-                    {
-                        AuthenticateUser._currentLoggedInUser = lines[i];
-                        return true;
-
-                    }
-                return false;
-                Properties.Settings.Default.Save();
-                var path = Path.Combine(_appData, _rootFolder, "User Data", "UserInfo.txt");
-                if (!File.Exists(path))
-                    throw new IOException("File does not exist.");
-
-                string[] lines = File.ReadAllLines(path);
-                for (int i = 0; i < lines.Length; i++)
-                    if (lines[i] == userName)
-                    {
-                        AuthenticateUser._currentLoggedInUser = lines[i];
-                        return true;
-
-                    }
-                return false;
             }
             try
             {
@@ -64,48 +31,54 @@ namespace File_Protector
                         Userinpt_Text = null;
                         _hashedInput = string.Empty;
                         Crypto.Hash = string.Empty;
-        private void File_Protector_Load(object sender, EventArgs e)
-        {
-            if (Properties.Settings.Default.userName != string.Empty)
-            {
-                Userinpt_Text.Text = Properties.Settings.Default.userName;
-                saveLoginCheckBox.Checked = true;
-            }
-        }
                         MessageBox.Show("Log in successful! Redirecting to homepage...", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-}
-#pragma warning restore                        this.Hide();
-                        using Homepage _Form = new();
+                        UserPasswrd_Inpt.Text = string.Empty;
+                        this.Hide();
+                        using Homepage _Form = new ();
                         _Form.ShowDialog();
                         this.Close();
-                    }
+    }
                     else if (!_LoginSuccessful)
                     {
                         MessageBox.Show("Log in failed! Please recheck your login credentials and try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
                 else if (!_userExists)
-                {
-}                }
+{
+
+    throw new ArgumentException("Username does not exist.", nameof(Userinpt_Text));
+}
             }
             catch (ArgumentException ex)
             {
-                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+    MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+}
         }
         private void Reg_Btn_Click(object sender, EventArgs e)
-        {
-            this.Hide();
-        }
-}#pragma warning restore
-        private void unmaskPass_CheckedChanged(object sender, EventArgs e)
-        {
-            if (unmaskPass.Checked)
-            {
-                UserPasswrd_Inpt.UseSystemPasswordChar = false;
-                return;
-            }
-            UserPasswrd_Inpt.UseSystemPasswordChar = true;
-        }
+{
+    this.Hide();
+    using Register_Form _Form = new();
+    _Form.ShowDialog();
+    this.Close();
+}
+
+private void unmaskPass_CheckedChanged(object sender, EventArgs e)
+{
+    if (unmaskPass.Checked)
+    {
+        UserPasswrd_Inpt.UseSystemPasswordChar = false;
+        return;
+    }
+    UserPasswrd_Inpt.UseSystemPasswordChar = true;
+}
+private void File_Protector_Load(object sender, EventArgs e)
+{
+    if (Properties.Settings.Default.userName != string.Empty)
+    {
+        Userinpt_Text.Text = Properties.Settings.Default.userName;
+        saveLoginCheckBox.Checked = true;
     }
 }
+    }
+}
+#pragma warning restore
