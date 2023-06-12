@@ -35,7 +35,7 @@ public static class Crypto
 
     public static string HashPasswordV2(string password, byte[] salt)
     {
-        using var _argon2 = new Argon2i(Encoding.UTF8.GetBytes(password))
+        using var _argon2 = new Argon2id(Encoding.UTF8.GetBytes(password))
         {
             Salt = salt,
             DegreeOfParallelism = Environment.ProcessorCount,
@@ -43,6 +43,25 @@ public static class Crypto
             MemorySize = (int)_memorySize
         };
         return Convert.ToHexString(_argon2.GetBytes(_keySize));
+    }
+    public static string deriveKey(string password, byte[] salt, int size)
+    {
+        try
+        {
+            using var _argon2 = new Argon2id(Encoding.UTF8.GetBytes(password))
+            {
+                Salt = salt,
+                DegreeOfParallelism = Environment.ProcessorCount,
+                Iterations = _iterations,
+                MemorySize = (int)_memorySize
+            };
+            return Convert.ToHexString(_argon2.GetBytes(size));
+        }
+        catch(Exception ex)
+        {
+            MessageBox.Show(ex.Message);
+            throw;
+        }
     }
     public static bool ComparePassword(string hash)
     {

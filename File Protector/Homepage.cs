@@ -2,6 +2,9 @@
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using System.Windows.Shapes;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 #pragma warning disable
 namespace File_Protector
@@ -12,7 +15,9 @@ namespace File_Protector
         private bool fileOpened;
         private string? loadedFile = string.Empty;
         private string fileName = string.Empty;
-
+        private static string userSalt = string.Empty;
+        private static string userKey = string.Empty;
+        private static string userEncryptedKey = string.Empty;
         public Homepage()
         {
             InitializeComponent();
@@ -68,8 +73,8 @@ namespace File_Protector
             openFileDialog.CheckFileExists = true;
             openFileDialog.CheckPathExists = true;
             var _appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            var _rootFolder = Path.Combine(_appData, "User Data");
-            var path = Path.Combine(_appData, _rootFolder, "User Files", AuthenticateUser.CurrentLoggedInUser);
+            var _rootFolder = System.IO.Path.Combine(_appData, "User Data");
+            var path = System.IO.Path.Combine(_appData, _rootFolder, "User Files", AuthenticateUser.CurrentLoggedInUser);
             openFileDialog.RestoreDirectory = true;
             openFileDialog.InitialDirectory = path;
 
@@ -78,7 +83,7 @@ namespace File_Protector
                 fileName = openFileDialog.FileName;
                 try
                 {
-                    string compare = Path.GetExtension(fileName);
+                    string compare = System.IO.Path.GetExtension(fileName);
                     if (compare != ".txt")
                         throw new ArgumentException("Invalid file type.", openFileDialog.FileName);
                     const int maxSize = 800_000_000;
@@ -191,8 +196,8 @@ namespace File_Protector
                     throw new ArgumentException("No file is opened.", nameof(loadedFile));
                 using var sf = new SaveFileDialog();
                 var _appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                var _rootFolder = Path.Combine(_appData, "User Data");
-                var path = Path.Combine(_appData, _rootFolder, "User Files", AuthenticateUser.CurrentLoggedInUser);
+                var _rootFolder = System.IO.Path.Combine(_appData, "User Data");
+                var path = System.IO.Path.Combine(_appData, _rootFolder, "User Files", AuthenticateUser.CurrentLoggedInUser);
                 sf.FilterIndex = 1;
                 sf.ShowHiddenFiles = true;
                 sf.RestoreDirectory = true;
@@ -229,6 +234,86 @@ namespace File_Protector
             ErrorLogging.ErrorLog(ex);
             currentStatusLbl.Text = errorMessage;
             currentStatusLbl.ForeColor = Color.Red;
+        }
+
+        private void createPassBtn_Click(object sender, EventArgs e)
+        {
+            var _appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var _rootFolder = System.IO.Path.Combine(_appData, "User Data");
+            var path = System.IO.Path.Combine(_appData, _rootFolder, "User Data", "UserKeys.txt");
+
+            string header = @"=========////(DO NOT modify this file as doing so may cause a loss of data.)\\\\=========";
+
+            if (!File.Exists(path))
+                File.WriteAllText(path, header + "\n");
+
+            userSalt = DataConversionHelpers.ByteArrayToBase64String(Crypto.RndByteSized(256 / 8));
+            userKey = Crypto.deriveKey(createPassTxt.Text, Encoding.UTF8.GetBytes(userSalt), 256 / 8 / 2);
+            userEncryptedKey = Crypto.deriveKey(userKey, Encoding.UTF8.GetBytes(userSalt), 256 / 8 / 2);
+
+
+            File.AppendAllText(path, "Username: " + "\n" + AuthenticateUser.CurrentLoggedInUser + "\n" + "Salt: " + "\n" + userSalt + "\n" + "Key: " + "\n" + userEncryptedKey + "\n");
+
+            MessageBox.Show("Key was made successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private static string GetUserInfoFilePath()
+        {
+            try
+            {
+                var _appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                var _rootFolder = System.IO.Path.Combine(_appData, "User Data");
+                var path = System.IO.Path.Combine(_appData, _rootFolder, "User Data", "UserKeys.txt");
+                if (!File.Exists(path)) 
+                    throw new ArgumentException("Value returned null or empty.", nameof(path));
+                return path;
+            }
+            catch (ArgumentException ex)
+            {
+                ErrorLogging.ErrorLog(ex)
+                return null;
+            }
+        }
+    private void enterPassBtn_Click(object sender, EventArgs e)
+        {
+            string path = GetUserInfoFilePath();
+            if (path == null)
+            {
+                MessageBox.Show("File does not exist.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            string userName = AuthenticateUser.CurrentLoggedInUser;
+            string[] lines = File.ReadAllLines(path);
+
+            int index = Array.IndexOf(lines, userName);
+            if (index == -1)
+            {
+                MessageBox.Show("User not found.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            userSalt = lines[index + 2];
+            userEncryptedKey = lines[index + 4];
+
+            string enteredPassword = enterPassTxt.Text;
+            byte[] saltBytes = Encoding.UTF8.GetBytes(userSalt);
+
+            string derivedKey = Crypto.deriveKey(enteredPassword, saltBytes, 256 / 8 / 2);
+            string derivedCompareKey = Crypto.deriveKey(derivedKey, saltBytes, 256 / 8 / 2);
+
+            if (derivedCompareKey == userEncryptedKey)
+            {
+                MessageBox.Show("Success. Key will be printed to the output textbox. " +
+                    "You may use this key to encrypt and decrypt files. " +
+                    "Make sure you do NOT lose the password as you will lose access to any files encrypted using that key.",
+                    "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                keyTxtBox.Text = derivedKey; // Changed from "userKey" to "derivedKey"
+            }
+            else
+            {
+                MessageBox.Show("Passwords do not match.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
     }
 }

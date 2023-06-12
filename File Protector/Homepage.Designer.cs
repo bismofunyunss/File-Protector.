@@ -29,6 +29,12 @@
         private void InitializeComponent()
         {
             authKeyBox = new GroupBox();
+            createPassBtn = new Button();
+            label2 = new Label();
+            createPassTxt = new TextBox();
+            enterPassBtn = new Button();
+            enterPassLbl = new Label();
+            enterPassTxt = new TextBox();
             generateRnd32 = new Button();
             enterpassLabel = new Label();
             keyTxtBox = new TextBox();
@@ -47,6 +53,12 @@
             // 
             // authKeyBox
             // 
+            authKeyBox.Controls.Add(createPassBtn);
+            authKeyBox.Controls.Add(label2);
+            authKeyBox.Controls.Add(createPassTxt);
+            authKeyBox.Controls.Add(enterPassBtn);
+            authKeyBox.Controls.Add(enterPassLbl);
+            authKeyBox.Controls.Add(enterPassTxt);
             authKeyBox.Controls.Add(generateRnd32);
             authKeyBox.Controls.Add(enterpassLabel);
             authKeyBox.Controls.Add(keyTxtBox);
@@ -54,10 +66,80 @@
             authKeyBox.ForeColor = Color.WhiteSmoke;
             authKeyBox.Location = new Point(12, 12);
             authKeyBox.Name = "authKeyBox";
-            authKeyBox.Size = new Size(588, 154);
+            authKeyBox.Size = new Size(588, 374);
             authKeyBox.TabIndex = 5;
             authKeyBox.TabStop = false;
             authKeyBox.Text = "Key / Hash";
+            // 
+            // createPassBtn
+            // 
+            createPassBtn.BackColor = SystemColors.ControlDarkDark;
+            createPassBtn.FlatAppearance.BorderSize = 3;
+            createPassBtn.FlatStyle = FlatStyle.Flat;
+            createPassBtn.Font = new Font("Segoe UI Black", 9F, FontStyle.Bold, GraphicsUnit.Point);
+            createPassBtn.ForeColor = Color.WhiteSmoke;
+            createPassBtn.Location = new Point(7, 313);
+            createPassBtn.Name = "createPassBtn";
+            createPassBtn.Size = new Size(575, 41);
+            createPassBtn.TabIndex = 12;
+            createPassBtn.Text = "&Create Key";
+            createPassBtn.UseVisualStyleBackColor = false;
+            createPassBtn.Click += createPassBtn_Click;
+            // 
+            // label2
+            // 
+            label2.AutoSize = true;
+            label2.Font = new Font("Segoe UI Black", 9F, FontStyle.Bold, GraphicsUnit.Point);
+            label2.Location = new Point(7, 246);
+            label2.Name = "label2";
+            label2.Size = new Size(125, 25);
+            label2.TabIndex = 11;
+            label2.Text = "Create A Key";
+            // 
+            // createPassTxt
+            // 
+            createPassTxt.BackColor = SystemColors.ControlDarkDark;
+            createPassTxt.ForeColor = Color.WhiteSmoke;
+            createPassTxt.Location = new Point(7, 274);
+            createPassTxt.Name = "createPassTxt";
+            createPassTxt.Size = new Size(575, 32);
+            createPassTxt.TabIndex = 10;
+            createPassTxt.UseSystemPasswordChar = true;
+            // 
+            // enterPassBtn
+            // 
+            enterPassBtn.BackColor = SystemColors.ControlDarkDark;
+            enterPassBtn.FlatAppearance.BorderSize = 3;
+            enterPassBtn.FlatStyle = FlatStyle.Flat;
+            enterPassBtn.Font = new Font("Segoe UI Black", 9F, FontStyle.Bold, GraphicsUnit.Point);
+            enterPassBtn.ForeColor = Color.WhiteSmoke;
+            enterPassBtn.Location = new Point(7, 202);
+            enterPassBtn.Name = "enterPassBtn";
+            enterPassBtn.Size = new Size(575, 41);
+            enterPassBtn.TabIndex = 9;
+            enterPassBtn.Text = "&Enter";
+            enterPassBtn.UseVisualStyleBackColor = false;
+            enterPassBtn.Click += enterPassBtn_Click;
+            // 
+            // enterPassLbl
+            // 
+            enterPassLbl.AutoSize = true;
+            enterPassLbl.Font = new Font("Segoe UI Black", 9F, FontStyle.Bold, GraphicsUnit.Point);
+            enterPassLbl.Location = new Point(7, 136);
+            enterPassLbl.Name = "enterPassLbl";
+            enterPassLbl.Size = new Size(150, 25);
+            enterPassLbl.TabIndex = 8;
+            enterPassLbl.Text = "Enter Password";
+            // 
+            // enterPassTxt
+            // 
+            enterPassTxt.BackColor = SystemColors.ControlDarkDark;
+            enterPassTxt.ForeColor = Color.WhiteSmoke;
+            enterPassTxt.Location = new Point(7, 163);
+            enterPassTxt.Name = "enterPassTxt";
+            enterPassTxt.Size = new Size(575, 32);
+            enterPassTxt.TabIndex = 7;
+            enterPassTxt.UseSystemPasswordChar = true;
             // 
             // generateRnd32
             // 
@@ -104,7 +186,7 @@
             controlsBox.Controls.Add(decryptBtn);
             controlsBox.Font = new Font("Segoe UI Black", 9F, FontStyle.Bold, GraphicsUnit.Point);
             controlsBox.ForeColor = Color.WhiteSmoke;
-            controlsBox.Location = new Point(12, 172);
+            controlsBox.Location = new Point(12, 404);
             controlsBox.Name = "controlsBox";
             controlsBox.Size = new Size(588, 224);
             controlsBox.TabIndex = 6;
@@ -176,7 +258,7 @@
             welcomeLbl.AutoSize = true;
             welcomeLbl.Font = new Font("Segoe UI Black", 9F, FontStyle.Bold, GraphicsUnit.Point);
             welcomeLbl.ForeColor = Color.WhiteSmoke;
-            welcomeLbl.Location = new Point(12, 399);
+            welcomeLbl.Location = new Point(12, 631);
             welcomeLbl.Name = "welcomeLbl";
             welcomeLbl.Size = new Size(139, 25);
             welcomeLbl.TabIndex = 7;
@@ -187,7 +269,7 @@
             statusLbl.AutoSize = true;
             statusLbl.Font = new Font("Segoe UI Black", 9F, FontStyle.Bold, GraphicsUnit.Point);
             statusLbl.ForeColor = Color.WhiteSmoke;
-            statusLbl.Location = new Point(12, 424);
+            statusLbl.Location = new Point(12, 656);
             statusLbl.Name = "statusLbl";
             statusLbl.Size = new Size(85, 25);
             statusLbl.TabIndex = 8;
@@ -203,7 +285,7 @@
             currentStatusLbl.AutoSize = true;
             currentStatusLbl.Font = new Font("Segoe UI Black", 9F, FontStyle.Bold, GraphicsUnit.Point);
             currentStatusLbl.ForeColor = Color.WhiteSmoke;
-            currentStatusLbl.Location = new Point(103, 424);
+            currentStatusLbl.Location = new Point(103, 656);
             currentStatusLbl.Name = "currentStatusLbl";
             currentStatusLbl.Size = new Size(64, 25);
             currentStatusLbl.TabIndex = 9;
@@ -215,7 +297,7 @@
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.ControlDarkDark;
-            ClientSize = new Size(612, 468);
+            ClientSize = new Size(612, 690);
             Controls.Add(currentStatusLbl);
             Controls.Add(statusLbl);
             Controls.Add(welcomeLbl);
@@ -246,5 +328,11 @@
         private Label statusLbl;
         private System.ComponentModel.BackgroundWorker worker;
         private Label currentStatusLbl;
+        private Button enterPassBtn;
+        private Label enterPassLbl;
+        private TextBox enterPassTxt;
+        private Button createPassBtn;
+        private Label label2;
+        private TextBox createPassTxt;
     }
 }
