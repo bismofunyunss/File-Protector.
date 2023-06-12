@@ -60,7 +60,7 @@ public static class Crypto
         catch(Exception ex)
         {
             MessageBox.Show(ex.Message);
-            throw;
+            ErrorLogging.ErrorLog(ex);
         }
     }
     public static bool ComparePassword(string hash)

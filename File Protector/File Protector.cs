@@ -49,6 +49,7 @@ namespace File_Protector
             catch (ArgumentException ex)
             {
                 MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ErrorLogging.ErrorLog(ex);
             }
         }
         private void Reg_Btn_Click(object sender, EventArgs e)

@@ -78,6 +78,7 @@ namespace File_Protector
             catch (ArgumentException ex)
             {
                 MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ErrorLogging.ErrorLog(ex);
             }
         }
 
@@ -123,6 +124,7 @@ namespace File_Protector
             catch (ArgumentException ex)
             {
                 MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ErrorLogging.ErrorLog(ex);
             }
         }
 
