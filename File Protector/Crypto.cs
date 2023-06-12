@@ -4,7 +4,7 @@ using System.Text;
 using Konscious.Security.Cryptography;
 public static class Crypto
 {
-    private const int _keySize = 512 / 8;
+    private const int _keySize = 256 / 8 / 2;
     private const int _iterations = 50;
     private const double _memorySize = 1024 * 1024 * 7.5; //7.5MB
     private static readonly HashAlgorithmName _hashAlgorithm = HashAlgorithmName.SHA512;
