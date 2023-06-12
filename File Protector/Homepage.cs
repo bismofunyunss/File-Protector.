@@ -270,7 +270,7 @@ namespace File_Protector
             }
             catch (ArgumentException ex)
             {
-                ErrorLogging.ErrorLog(ex)
+                ErrorLogging.ErrorLog(ex);
                 return null;
             }
         }
