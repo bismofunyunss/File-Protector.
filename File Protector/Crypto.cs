@@ -44,7 +44,7 @@ public static class Crypto
         };
         return Convert.ToHexString(_argon2.GetBytes(_keySize));
     }
-    public static string deriveKey(string password, byte[] salt, int size)
+    public static string? deriveKey(string password, byte[] salt, int size)
     {
         try
         {
@@ -61,6 +61,7 @@ public static class Crypto
         {
             MessageBox.Show(ex.Message);
             ErrorLogging.ErrorLog(ex);
+            return null;
         }
     }
     public static bool ComparePassword(string hash)

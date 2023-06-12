@@ -2,9 +2,6 @@
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
-using System.Windows.Shapes;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 #pragma warning disable
 namespace File_Protector
