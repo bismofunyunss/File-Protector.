@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Register_Form));
             regBox = new GroupBox();
             unmaskPass = new CheckBox();
             confirmPassTxt = new TextBox();
@@ -66,7 +67,7 @@
             unmaskPass.Location = new Point(264, 263);
             unmaskPass.Name = "unmaskPass";
             unmaskPass.Size = new Size(173, 29);
-            unmaskPass.TabIndex = 8;
+            unmaskPass.TabIndex = 4;
             unmaskPass.Text = "View Password";
             unmaskPass.UseVisualStyleBackColor = true;
             unmaskPass.CheckedChanged += unmaskPass_CheckedChanged;
@@ -78,7 +79,7 @@
             confirmPassTxt.Location = new Point(8, 180);
             confirmPassTxt.Name = "confirmPassTxt";
             confirmPassTxt.Size = new Size(429, 32);
-            confirmPassTxt.TabIndex = 6;
+            confirmPassTxt.TabIndex = 2;
             confirmPassTxt.UseSystemPasswordChar = true;
             // 
             // confirmPassLbl
@@ -150,11 +151,13 @@
             // 
             // Register_Form
             // 
+            AcceptButton = registerBtn;
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.ControlDarkDark;
             ClientSize = new Size(478, 324);
             Controls.Add(regBox);
+            Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "Register_Form";
             Text = "Register";
             FormClosing += Register_Form_FormClosing;

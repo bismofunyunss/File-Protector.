@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Homepage));
             authKeyBox = new GroupBox();
             createPassBtn = new Button();
             label2 = new Label();
@@ -303,6 +304,7 @@
             Controls.Add(welcomeLbl);
             Controls.Add(controlsBox);
             Controls.Add(authKeyBox);
+            Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "Homepage";
             Text = "Home Page";
             Load += Homepage_Load;

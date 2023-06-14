@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FileProtector));
             groupBox1 = new GroupBox();
             saveLoginCheckBox = new CheckBox();
             unmaskPass = new CheckBox();
@@ -142,14 +143,17 @@
             User_Name.TabIndex = 0;
             User_Name.Text = "Username";
             // 
-            // File_Protector
+            // FileProtector
             // 
+            AcceptButton = Login_Btn;
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.ControlDarkDark;
             ClientSize = new Size(591, 311);
             Controls.Add(groupBox1);
-            Name = "File_Protector";
+            FormBorderStyle = FormBorderStyle.Fixed3D;
+            Icon = (Icon)resources.GetObject("$this.Icon");
+            Name = "FileProtector";
             Text = "File Protector";
             Load += File_Protector_Load;
             groupBox1.ResumeLayout(false);
