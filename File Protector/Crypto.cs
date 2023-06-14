@@ -6,7 +6,7 @@ public static class Crypto
 {
     private const int _keySize = 256 / 8 / 2;
     private const int _iterations = 50;
-    private const double _memorySize = 1024 * 1024 * 10; //10MB
+    private const double _memorySize = 1024 * 1024 * 8; //8MB
     private static readonly HashAlgorithmName _hashAlgorithm = HashAlgorithmName.SHA512;
 
     private static string _Salt = string.Empty;
