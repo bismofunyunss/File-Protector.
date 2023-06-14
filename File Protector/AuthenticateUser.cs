@@ -3,7 +3,11 @@
 public static class AuthenticateUser
 {
     private static string _currentLoggedInUser = string.Empty;
-    public static string CurrentLoggedInUser => _currentLoggedInUser;
+    public static string CurrentLoggedInUser
+    {
+        get { return _currentLoggedInUser; }
+        set { _currentLoggedInUser = value; }
+    }
 
     public static bool UserExists(string userName)
     {

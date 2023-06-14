@@ -6,29 +6,24 @@ using System.Net.Http;
 public static class UserLog
 {
     private static readonly HttpClient _httpClient = new HttpClient();
-
-    struct InitializeVars
-    {
-        public static Uri? _externalIP = new("https://api.ipify.org");
-        public static string? externalIP = _httpClient.GetStringAsync(_externalIP).Result;
-        public static string? _userName = AuthenticateUser.CurrentLoggedInUser;
-        public static string? _dateAndTime = DateAndTime.Now.ToString();
-    }
-
+    private static readonly Uri _externalIP = new Uri("https://api.ipify.org");
 
     public static void LogUser(string userName)
     {
-        if (!File.Exists("UserLog.txt"))
-            File.Create("UserLog.txt").Dispose();
-
         try
         {
+            if (!File.Exists("UserLog.txt"))
+                File.Create("UserLog.txt").Dispose();
+
+            string externalIP = _httpClient.GetStringAsync(_externalIP).Result;
+            string dateAndTime = DateTime.Now.ToString();
+
             using StreamWriter sw = File.AppendText("UserLog.txt");
             sw.AutoFlush = true;
-            sw.WriteLine("Username: " + userName + " " + "logged in using IP: " + InitializeVars.externalIP + " " + InitializeVars._dateAndTime + "\n");
+            sw.WriteLine($"Username: {userName} logged in using IP: {externalIP} {dateAndTime}\n");
             sw.Flush();
         }
-        catch (ArgumentException e)
+        catch (Exception e)
         {
             MessageBox.Show(e.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             ErrorLogging.ErrorLog(e);

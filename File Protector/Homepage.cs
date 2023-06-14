@@ -336,37 +336,46 @@ namespace File_Protector
                 MessageBox.Show("Value cannot be empty or null.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            string userName = AuthenticateUser.CurrentLoggedInUser;
-            string[] lines = File.ReadAllLines(path);
-
-            int index = Array.IndexOf(lines, userName);
-            if (index == -1)
+            try
             {
-                MessageBox.Show("User not found.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
+                if (AuthenticateUser.CurrentLoggedInUser == null)
+                    throw new ArgumentException("Value returned empty or null.", nameof(AuthenticateUser.CurrentLoggedInUser));
+                string userName = AuthenticateUser.CurrentLoggedInUser;
+                string[] lines = File.ReadAllLines(path);
+
+                int index = Array.IndexOf(lines, userName);
+                if (index == -1)
+                {
+                    MessageBox.Show("User not found.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                userSalt = lines[index + 2];
+                userEncryptedKey = lines[index + 4];
+
+                string enteredPassword = enterPassTxt.Text;
+                byte[] saltBytes = Encoding.UTF8.GetBytes(userSalt);
+
+                string derivedKey = Crypto.deriveKey(enteredPassword, saltBytes, 256 / 8 / 2);
+                string derivedCompareKey = Crypto.deriveKey(derivedKey, saltBytes, 256 / 8 / 2);
+
+                if (derivedCompareKey == userEncryptedKey)
+                {
+                    MessageBox.Show("Success. Key will be printed to the output textbox. " +
+                        "You may use this key to encrypt and decrypt files. " +
+                        "Make sure you do NOT lose the password as you will lose access to any files encrypted using that key.",
+                        "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                    keyTxtBox.Text = derivedKey; // Changed from "userKey" to "derivedKey"
+                }
+                else
+                {
+                    MessageBox.Show("Passwords do not match.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
-
-            userSalt = lines[index + 2];
-            userEncryptedKey = lines[index + 4];
-
-            string enteredPassword = enterPassTxt.Text;
-            byte[] saltBytes = Encoding.UTF8.GetBytes(userSalt);
-
-            string derivedKey = Crypto.deriveKey(enteredPassword, saltBytes, 256 / 8 / 2);
-            string derivedCompareKey = Crypto.deriveKey(derivedKey, saltBytes, 256 / 8 / 2);
-
-            if (derivedCompareKey == userEncryptedKey)
+            catch (ArgumentException ex)
             {
-                MessageBox.Show("Success. Key will be printed to the output textbox. " +
-                    "You may use this key to encrypt and decrypt files. " +
-                    "Make sure you do NOT lose the password as you will lose access to any files encrypted using that key.",
-                    "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                keyTxtBox.Text = derivedKey; // Changed from "userKey" to "derivedKey"
-            }
-            else
-            {
-                MessageBox.Show("Passwords do not match.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }
