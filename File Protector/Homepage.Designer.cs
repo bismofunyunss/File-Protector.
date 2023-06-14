@@ -162,9 +162,9 @@
             enterpassLabel.Font = new Font("Segoe UI Black", 9F, FontStyle.Bold, GraphicsUnit.Point);
             enterpassLabel.Location = new Point(7, 28);
             enterpassLabel.Name = "enterpassLabel";
-            enterpassLabel.Size = new Size(96, 25);
+            enterpassLabel.Size = new Size(113, 25);
             enterpassLabel.TabIndex = 3;
-            enterpassLabel.Text = "Enter Key";
+            enterpassLabel.Text = "Key Output";
             // 
             // keyTxtBox
             // 

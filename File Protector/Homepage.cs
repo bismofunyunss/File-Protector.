@@ -239,6 +239,16 @@ namespace File_Protector
             var _rootFolder = System.IO.Path.Combine(_appData, "User Data");
             var path = System.IO.Path.Combine(_appData, _rootFolder, "User Data", "UserKeys.txt");
 
+            string userName = AuthenticateUser.CurrentLoggedInUser;
+            string[] lines = File.ReadAllLines(path);
+
+            int index = Array.IndexOf(lines, userName);
+            if (index != -1)
+            {
+                MessageBox.Show("User already has a unique key assigned.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
             string header = @"=========////(DO NOT modify this file as doing so may cause a loss of data.)\\\\=========";
 
             if (!File.Exists(path))
@@ -261,7 +271,7 @@ namespace File_Protector
                 var _appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
                 var _rootFolder = System.IO.Path.Combine(_appData, "User Data");
                 var path = System.IO.Path.Combine(_appData, _rootFolder, "User Data", "UserKeys.txt");
-                if (!File.Exists(path)) 
+                if (!File.Exists(path))
                     throw new ArgumentException("Value returned null or empty.", nameof(path));
                 return path;
             }
@@ -271,7 +281,7 @@ namespace File_Protector
                 return null;
             }
         }
-    private void enterPassBtn_Click(object sender, EventArgs e)
+        private void enterPassBtn_Click(object sender, EventArgs e)
         {
             string path = GetUserInfoFilePath();
             if (path == null)
