@@ -13,16 +13,24 @@ public static class AuthenticateUser
     {
         string path = GetUserInfoFilePath();
 
-        if (!File.Exists(path))
-            throw new IOException("File does not exist.");
-
-        string[] lines = File.ReadAllLines(path);
-        if (Array.IndexOf(lines, userName) != -1)
+        try
         {
-            _currentLoggedInUser = userName;
-            return true;
-        }
+            if (!File.Exists(path))
+                throw new IOException("File does not exist.");
 
+            string[] lines = File.ReadAllLines(path);
+            if (Array.IndexOf(lines, userName) != -1)
+            {
+                _currentLoggedInUser = userName;
+                return true;
+            }
+        }
+        catch (IOException ex)
+        {
+            ErrorLogging.ErrorLog(ex);
+            MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return false;
+        }
         return false;
     }
 
