@@ -28,7 +28,6 @@ public static class AuthenticateUser
         catch (IOException ex)
         {
             ErrorLogging.ErrorLog(ex);
-            MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return false;
         }
         return false;
