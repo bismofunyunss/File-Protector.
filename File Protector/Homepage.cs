@@ -158,7 +158,7 @@ namespace File_Protector
             catch (Exception ex)
             {
                 ShowErrorAndLog(ex, "File encryption error.");
-                throw;
+                return;
             }
         }
 
@@ -181,7 +181,7 @@ namespace File_Protector
             catch (Exception ex)
             {
                 ShowErrorAndLog(ex, "File decryption error.");
-                throw;
+                return;
             }
         }
 
@@ -222,7 +222,7 @@ namespace File_Protector
             catch (Exception ex)
             {
                 ShowErrorAndLog(ex, "File save error.");
-                throw;
+                return;
             }
         }
         private void ShowErrorAndLog(Exception ex, string errorMessage)
