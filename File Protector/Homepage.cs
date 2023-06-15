@@ -249,15 +249,6 @@ namespace File_Protector
         {
             try
             {
-                if (!createPassTxt.Text.All(c => char.IsLetterOrDigit(c) || c == '_' || c == ' '))
-                    throw new ArgumentException("Value contains illegal characters. Valid characters are letters, digits, underscores, and spaces.", nameof(createPassTxt));
-
-                if (string.IsNullOrEmpty(createPassTxt.Text))
-                    throw new ArgumentException("Value returned null or empty.", nameof(createPassTxt));
-
-                if (createPassTxt.Text.Length > 20)
-                    throw new ArgumentException("Value was too long.", nameof(createPassTxt));
-
                 if (string.IsNullOrEmpty(createPassTxt.Text))
                     throw new ArgumentException("Value returned null or empty.", nameof(createPassTxt));
 
