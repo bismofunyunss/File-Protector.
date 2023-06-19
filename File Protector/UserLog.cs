@@ -11,16 +11,7 @@ public static class UserLog
     {
         try
         {
-            if (!File.Exists("UserLog.txt"))
-                File.Create("UserLog.txt").Dispose();
-
-            string externalIP = _httpClient.GetStringAsync(_externalIP).Result;
-            string dateAndTime = DateTime.Now.ToString();
-
-            using StreamWriter sw = File.AppendText("UserLog.txt");
-            sw.AutoFlush = true;
-            sw.WriteLine($"Username: {userName} logged in using IP: {externalIP} {dateAndTime}\n");
-            sw.Flush();
+            File.AppendAllText("UserLog.txt", $"Username: {userName} logged in using IP: {_httpClient.GetStringAsync(_externalIP).Result} {DateTime.Now}\n");
         }
         catch (Exception e)
         {

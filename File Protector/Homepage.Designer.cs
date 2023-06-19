@@ -30,6 +30,8 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Homepage));
             authKeyBox = new GroupBox();
+            confirmPassLbl = new Label();
+            confirmPasswordTxt = new TextBox();
             createPassBtn = new Button();
             label2 = new Label();
             createPassTxt = new TextBox();
@@ -48,14 +50,14 @@
             statusLbl = new Label();
             worker = new System.ComponentModel.BackgroundWorker();
             currentStatusLbl = new Label();
-            confirmPassLbl = new Label();
-            confirmPasswordTxt = new TextBox();
+            exportKeyBtn = new Button();
             authKeyBox.SuspendLayout();
             controlsBox.SuspendLayout();
             SuspendLayout();
             // 
             // authKeyBox
             // 
+            authKeyBox.Controls.Add(exportKeyBtn);
             authKeyBox.Controls.Add(confirmPassLbl);
             authKeyBox.Controls.Add(confirmPasswordTxt);
             authKeyBox.Controls.Add(createPassBtn);
@@ -71,10 +73,30 @@
             authKeyBox.ForeColor = Color.WhiteSmoke;
             authKeyBox.Location = new Point(12, 12);
             authKeyBox.Name = "authKeyBox";
-            authKeyBox.Size = new Size(588, 442);
+            authKeyBox.Size = new Size(588, 485);
             authKeyBox.TabIndex = 5;
             authKeyBox.TabStop = false;
             authKeyBox.Text = "Key / Hash";
+            // 
+            // confirmPassLbl
+            // 
+            confirmPassLbl.AutoSize = true;
+            confirmPassLbl.Font = new Font("Segoe UI Black", 9F, FontStyle.Bold, GraphicsUnit.Point);
+            confirmPassLbl.Location = new Point(6, 358);
+            confirmPassLbl.Name = "confirmPassLbl";
+            confirmPassLbl.Size = new Size(175, 25);
+            confirmPassLbl.TabIndex = 14;
+            confirmPassLbl.Text = "Confirm Password";
+            // 
+            // confirmPasswordTxt
+            // 
+            confirmPasswordTxt.BackColor = SystemColors.ControlDarkDark;
+            confirmPasswordTxt.ForeColor = Color.WhiteSmoke;
+            confirmPasswordTxt.Location = new Point(6, 386);
+            confirmPasswordTxt.Name = "confirmPasswordTxt";
+            confirmPasswordTxt.Size = new Size(575, 32);
+            confirmPasswordTxt.TabIndex = 13;
+            confirmPasswordTxt.UseSystemPasswordChar = true;
             // 
             // createPassBtn
             // 
@@ -83,7 +105,7 @@
             createPassBtn.FlatStyle = FlatStyle.Flat;
             createPassBtn.Font = new Font("Segoe UI Black", 9F, FontStyle.Bold, GraphicsUnit.Point);
             createPassBtn.ForeColor = Color.WhiteSmoke;
-            createPassBtn.Location = new Point(6, 375);
+            createPassBtn.Location = new Point(6, 424);
             createPassBtn.Name = "createPassBtn";
             createPassBtn.Size = new Size(575, 41);
             createPassBtn.TabIndex = 12;
@@ -95,7 +117,7 @@
             // 
             label2.AutoSize = true;
             label2.Font = new Font("Segoe UI Black", 9F, FontStyle.Bold, GraphicsUnit.Point);
-            label2.Location = new Point(7, 246);
+            label2.Location = new Point(6, 295);
             label2.Name = "label2";
             label2.Size = new Size(295, 25);
             label2.TabIndex = 11;
@@ -105,7 +127,7 @@
             // 
             createPassTxt.BackColor = SystemColors.ControlDarkDark;
             createPassTxt.ForeColor = Color.WhiteSmoke;
-            createPassTxt.Location = new Point(7, 274);
+            createPassTxt.Location = new Point(6, 323);
             createPassTxt.Name = "createPassTxt";
             createPassTxt.Size = new Size(575, 32);
             createPassTxt.TabIndex = 10;
@@ -118,7 +140,7 @@
             enterPassBtn.FlatStyle = FlatStyle.Flat;
             enterPassBtn.Font = new Font("Segoe UI Black", 9F, FontStyle.Bold, GraphicsUnit.Point);
             enterPassBtn.ForeColor = Color.WhiteSmoke;
-            enterPassBtn.Location = new Point(7, 202);
+            enterPassBtn.Location = new Point(6, 251);
             enterPassBtn.Name = "enterPassBtn";
             enterPassBtn.Size = new Size(575, 41);
             enterPassBtn.TabIndex = 9;
@@ -130,7 +152,7 @@
             // 
             enterPassLbl.AutoSize = true;
             enterPassLbl.Font = new Font("Segoe UI Black", 9F, FontStyle.Bold, GraphicsUnit.Point);
-            enterPassLbl.Location = new Point(7, 136);
+            enterPassLbl.Location = new Point(7, 185);
             enterPassLbl.Name = "enterPassLbl";
             enterPassLbl.Size = new Size(150, 25);
             enterPassLbl.TabIndex = 8;
@@ -140,7 +162,7 @@
             // 
             enterPassTxt.BackColor = SystemColors.ControlDarkDark;
             enterPassTxt.ForeColor = Color.WhiteSmoke;
-            enterPassTxt.Location = new Point(7, 163);
+            enterPassTxt.Location = new Point(7, 213);
             enterPassTxt.Name = "enterPassTxt";
             enterPassTxt.Size = new Size(575, 32);
             enterPassTxt.TabIndex = 7;
@@ -176,12 +198,10 @@
             keyTxtBox.BackColor = SystemColors.ControlDarkDark;
             keyTxtBox.ForeColor = Color.WhiteSmoke;
             keyTxtBox.Location = new Point(7, 55);
-            keyTxtBox.Multiline = true;
             keyTxtBox.Name = "keyTxtBox";
-            keyTxtBox.Size = new Size(575, 33);
+            keyTxtBox.ReadOnly = true;
+            keyTxtBox.Size = new Size(575, 32);
             keyTxtBox.TabIndex = 2;
-            keyTxtBox.Text = "Key must be 32 characters long.";
-            keyTxtBox.UseSystemPasswordChar = true;
             // 
             // controlsBox
             // 
@@ -297,25 +317,20 @@
             currentStatusLbl.Text = "Idle...";
             currentStatusLbl.UseWaitCursor = true;
             // 
-            // confirmPassLbl
+            // exportKeyBtn
             // 
-            confirmPassLbl.AutoSize = true;
-            confirmPassLbl.Font = new Font("Segoe UI Black", 9F, FontStyle.Bold, GraphicsUnit.Point);
-            confirmPassLbl.Location = new Point(7, 309);
-            confirmPassLbl.Name = "confirmPassLbl";
-            confirmPassLbl.Size = new Size(175, 25);
-            confirmPassLbl.TabIndex = 14;
-            confirmPassLbl.Text = "Confirm Password";
-            // 
-            // confirmPasswordTxt
-            // 
-            confirmPasswordTxt.BackColor = SystemColors.ControlDarkDark;
-            confirmPasswordTxt.ForeColor = Color.WhiteSmoke;
-            confirmPasswordTxt.Location = new Point(7, 337);
-            confirmPasswordTxt.Name = "confirmPasswordTxt";
-            confirmPasswordTxt.Size = new Size(575, 32);
-            confirmPasswordTxt.TabIndex = 13;
-            confirmPasswordTxt.UseSystemPasswordChar = true;
+            exportKeyBtn.BackColor = SystemColors.ControlDarkDark;
+            exportKeyBtn.FlatAppearance.BorderSize = 3;
+            exportKeyBtn.FlatStyle = FlatStyle.Flat;
+            exportKeyBtn.Font = new Font("Segoe UI Black", 9F, FontStyle.Bold, GraphicsUnit.Point);
+            exportKeyBtn.ForeColor = Color.WhiteSmoke;
+            exportKeyBtn.Location = new Point(6, 141);
+            exportKeyBtn.Name = "exportKeyBtn";
+            exportKeyBtn.Size = new Size(575, 41);
+            exportKeyBtn.TabIndex = 15;
+            exportKeyBtn.Text = "&Export Key To Text File";
+            exportKeyBtn.UseVisualStyleBackColor = false;
+            exportKeyBtn.Click += exportKeyBtn_Click;
             // 
             // Homepage
             // 
@@ -362,5 +377,6 @@
         private TextBox createPassTxt;
         private Label confirmPassLbl;
         private TextBox confirmPasswordTxt;
+        private Button exportKeyBtn;
     }
 }

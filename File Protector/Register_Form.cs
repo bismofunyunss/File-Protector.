@@ -53,7 +53,7 @@ namespace File_Protector
             {
                 if (!exists)
                 {
-                    byte[] salt = Crypto.RndByteSized(256 / 8);
+                    byte[] salt = Crypto.RndByteSized(Crypto.saltSize);
                     string hashPassword = Crypto.HashPasswordV2(passTxt.Text, salt);
                     string saltString = Convert.ToBase64String(salt);
 

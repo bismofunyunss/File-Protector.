@@ -2,19 +2,21 @@
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using System.Windows.Navigation;
 
 #pragma warning disable
 namespace File_Protector
 {
     public partial class Homepage : Form
     {
+        private static string UserSalt = string.Empty;
+        private static string UserKey = string.Empty;
+        private static string UserEncryptedKey = string.Empty;
         private readonly Random random = new Random();
         private bool fileOpened;
-        private string? loadedFile = string.Empty;
+        private string loadedFile = string.Empty;
         private string fileName = string.Empty;
-        private static string userSalt = string.Empty;
-        private static string userKey = string.Empty;
-        private static string userEncryptedKey = string.Empty;
+
         public Homepage()
         {
             InitializeComponent();
@@ -23,18 +25,13 @@ namespace File_Protector
         private void rainbowLabel(Label label)
         {
             label.ForeColor = Color.FromArgb(random.Next(0, 255), random.Next(0, 255), random.Next(0, 255));
-            Thread.Sleep(150);
         }
 
-        public string? Encrypt(string data, byte[] key)
+        public string Encrypt(string data, byte[] key)
         {
-            byte[]? plainText = DataConversionHelpers.StringToByteArray(data);
             try
             {
-                var cipherText = Crypto.Encrypt(plainText, key);
-                if (cipherText == null)
-                    throw new CryptographicException("Value returned null.", nameof(cipherText));
-                return DataConversionHelpers.ByteArrayToBase64String(cipherText);
+                return DataConversionHelpers.ByteArrayToBase64String(Crypto.Encrypt(DataConversionHelpers.StringToByteArray(data), key)) ?? throw new CryptographicException(0);
             }
             catch (CryptographicException ex)
             {
@@ -43,78 +40,65 @@ namespace File_Protector
             return null;
         }
 
-        public string? Decrypt(string data, byte[] key)
+        public string Decrypt(string data, byte[] key)
         {
             try
             {
-                var inputText = DataConversionHelpers.Base64StringToByteArray(data);
-                var result = Crypto.Decrypt(inputText, key);
-
-                if (result == null)
-                    throw new System.Exception("Decryption value returned empty or null.");
-
-                return Encoding.UTF8.GetString(result);
+                byte[] result = Crypto.Decrypt(DataConversionHelpers.Base64StringToByteArray(data), key);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 ShowErrorAndLog(ex, "File decryption error.");
             }
             return null;
         }
+
         private void openFile_Click(object sender, EventArgs e)
         {
-            using var openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "Txt files(*.txt) | *.txt";
-            openFileDialog.FilterIndex = 1;
-            openFileDialog.ShowHiddenFiles = true;
-            openFileDialog.CheckFileExists = true;
-            openFileDialog.CheckPathExists = true;
-            var _appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            var _rootFolder = System.IO.Path.Combine(_appData, "User Data");
-            var path = System.IO.Path.Combine(_appData, _rootFolder, "User Files", AuthenticateUser.CurrentLoggedInUser);
-            openFileDialog.RestoreDirectory = true;
-            openFileDialog.InitialDirectory = path;
-
-            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            using var openFileDialog = new OpenFileDialog
             {
-                fileName = openFileDialog.FileName;
-                try
-                {
-                    string compare = System.IO.Path.GetExtension(fileName);
-                    if (compare != ".txt")
-                        throw new ArgumentException("Invalid file type.", openFileDialog.FileName);
-                    const int maxSize = 800_000_000;
-                    FileInfo info = new FileInfo(fileName);
+                Filter = "Txt files(*.txt) | *.txt",
+                FilterIndex = 1,
+                ShowHiddenFiles = true,
+                CheckFileExists = true,
+                CheckPathExists = true,
+                RestoreDirectory = true
+            };
 
-                    if (info.Length > maxSize)
-                        throw new OutOfMemoryException("Value exceeded maximum value.");
+            openFileDialog.InitialDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "User Data", "User Files", AuthenticateUser.CurrentLoggedInUser);
 
-                    byte[] buffer = new byte[info.Length];
-                    StringBuilder sb = new StringBuilder();
-                    using (var fs = new FileStream(fileName, FileMode.Open, FileAccess.Read))
-                    {
-                        fs.Read(buffer, 0, buffer.Length);
-                        loadedFile = sb.Append(Encoding.UTF8.GetString(buffer)).ToString();
-                        fileOpened = true;
-                    }
-                    if (!fileOpened)
-                    {
-                        MessageBox.Show("Error while trying to open file.", "Open File", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        currentStatusLbl.Text = "File read error.";
-                        currentStatusLbl.ForeColor = Color.Red;
-                    }
-                    else
-                    {
-                        MessageBox.Show("File Opened Successfully!", "Open File", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        currentStatusLbl.Text = "File Loaded! File size: " + info.Length.ToString() + " bytes!";
-                        currentStatusLbl.ForeColor = Color.LimeGreen;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    ShowErrorAndLog(ex, "File read error.");
-                    throw;
-                }
+            if (openFileDialog.ShowDialog() != DialogResult.OK)
+                return;
+
+            fileName = openFileDialog.FileName;
+            var fileInfo = new FileInfo(fileName);
+
+            try
+            {
+                const int maxSize = 800_000_000;
+
+                if (!Path.GetExtension(fileName).Equals(".txt", StringComparison.OrdinalIgnoreCase) || fileInfo.Length > maxSize)
+                    throw new ArgumentException("Invalid file type or size.");
+
+                loadedFile = Encoding.UTF8.GetString(File.ReadAllBytes(fileName));
+                fileOpened = true;
+
+                currentStatusLbl.Text = $"File Loaded! File size: {fileInfo.Length} bytes!";
+                currentStatusLbl.ForeColor = Color.LimeGreen;
+            }
+            catch (Exception ex)
+            {
+                ShowErrorAndLog(ex, "File read error.");
+                throw;
+            }
+            finally
+            {
+                var errorMessage = !fileOpened ? "Error while trying to open file." : "File Opened Successfully!";
+                var errorColor = !fileOpened ? Color.Red : Color.LimeGreen;
+
+                MessageBox.Show(errorMessage, "Open File", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                currentStatusLbl.Text = !fileOpened ? "File read error." : $"File Loaded! File size: {fileInfo.Length} bytes!";
+                currentStatusLbl.ForeColor = errorColor;
             }
         }
 
@@ -122,7 +106,7 @@ namespace File_Protector
         {
             if (!worker.IsBusy)
                 worker.RunWorkerAsync();
-            welcomeLbl.Text = "Welcome, " + AuthenticateUser.CurrentLoggedInUser + "!";
+            welcomeLbl.Text = $"Welcome, {AuthenticateUser.CurrentLoggedInUser} !";
         }
 
         private void worker_DoWork(object sender, DoWorkEventArgs e)
@@ -130,29 +114,57 @@ namespace File_Protector
             while (true)
             {
                 rainbowLabel(welcomeLbl);
+                Thread.Sleep(150);
             }
         }
 
         private void generateRnd32_Click(object sender, EventArgs e)
         {
-            keyTxtBox.Text = Crypto.GenerateRndString(32);
+            keyTxtBox.Text = Crypto.GenerateRndKey();
         }
+        private void exportKeyBtn_Click(object sender, EventArgs e)
+        {
+            using var saveFileDialog = new SaveFileDialog
+            {
+                Filter = "Txt files(*.txt) | *.txt",
+                FilterIndex = 1,
+                ShowHiddenFiles = true,
+                RestoreDirectory = true,
+                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory)
+            };
 
+            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                string fileName = saveFileDialog.FileName;
+                if (!string.IsNullOrEmpty(fileName))
+                {
+                    File.WriteAllText(fileName, keyTxtBox.Text);
+                    MessageBox.Show("File Saved Successfully!", "Save File", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+            }
+            MessageBox.Show("Error saving file.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
         private void encryptBtn_Click(object sender, EventArgs e)
         {
             string? inputString = loadedFile;
             string keyString = keyTxtBox.Text;
             byte[] Key = Encoding.UTF8.GetBytes(keyTxtBox.Text);
+
             try
             {
                 if (string.IsNullOrEmpty(keyString))
                     throw new ArgumentException("Key value was empty or null.", nameof(Key));
+
                 if (string.IsNullOrEmpty(inputString))
                     throw new ArgumentException("Input value was empty or null.", nameof(inputString));
+
                 string? encryptData = Encrypt(inputString, Key);
                 loadedFile = encryptData;
+
                 if (string.IsNullOrEmpty(encryptData))
-                    throw new System.Exception("Encryption value returned empty or null.");
+                    throw new Exception("Encryption value returned empty or null.");
+
                 currentStatusLbl.Text = "File Encrypted! New byte size: " + loadedFile.Length + " bytes!";
             }
             catch (Exception ex)
@@ -166,17 +178,19 @@ namespace File_Protector
         {
             string inputData = loadedFile;
             byte[] Key = Encoding.UTF8.GetBytes(keyTxtBox.Text);
+
             try
             {
-                if (Key == null)
-                    throw new ArgumentException("Value was empty or null.", nameof(Key));
-                if (Key.Length != 256 / 8)
-                    throw new ArgumentException("Key must be 256 bits.", nameof(Key));
-                string? Text = Decrypt(inputData, Key);
-                if (string.IsNullOrEmpty(Text))
-                    throw new Exception("Value was empty or null.");
+                if (Key == null || Key.Length != 256 / 8)
+                    throw new ArgumentException("Invalid key size.", nameof(Key));
+
+                string? decryptedText = Decrypt(inputData, Key);
+
+                if (string.IsNullOrEmpty(decryptedText))
+                    throw new Exception("Decryption value was empty or null.");
+
                 currentStatusLbl.Text = "File Decrypted! New byte size: " + loadedFile.Length + " bytes!";
-                loadedFile = Text;
+                loadedFile = decryptedText;
             }
             catch (Exception ex)
             {
@@ -191,26 +205,28 @@ namespace File_Protector
             {
                 if (!fileOpened)
                     throw new ArgumentException("No file is opened.", nameof(loadedFile));
-                using var sf = new SaveFileDialog();
-                var _appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                var _rootFolder = System.IO.Path.Combine(_appData, "User Data");
-                var path = System.IO.Path.Combine(_appData, _rootFolder, "User Files", AuthenticateUser.CurrentLoggedInUser);
-                sf.FilterIndex = 1;
-                sf.ShowHiddenFiles = true;
-                sf.RestoreDirectory = true;
-                sf.InitialDirectory = path;
-                sf.Filter = "Txt files(*.txt) | *.txt";
 
-                if (sf.ShowDialog() == DialogResult.OK)
+                using var saveFileDialog = new SaveFileDialog
                 {
-                    fileName = sf.FileName;
-                    if (!string.IsNullOrEmpty(sf.FileName))
+                    Filter = "Txt files(*.txt) | *.txt",
+                    FilterIndex = 1,
+                    ShowHiddenFiles = true,
+                    RestoreDirectory = true,
+                    InitialDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "User Data", "User Files", AuthenticateUser.CurrentLoggedInUser)
+                };
+
+                if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    fileName = saveFileDialog.FileName;
+
+                    if (!string.IsNullOrEmpty(fileName))
                     {
-                        using (StreamWriter sw = new StreamWriter(sf.FileName))
-                            sw.Write(loadedFile);
+                        File.WriteAllText(fileName, loadedFile);
                     }
                     else
-                        throw new ArgumentException("Value returned null or empty.", nameof(sf.FileName));
+                    {
+                        throw new ArgumentException("File name is null or empty.", nameof(fileName));
+                    }
 
                     MessageBox.Show("File Saved Successfully!", "Save File", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     currentStatusLbl.Text = "Idle...";
@@ -234,16 +250,10 @@ namespace File_Protector
         }
         private static bool CheckPasswordValidity(string password, string password2)
         {
-            if (password.Length < 8 || password.Length > 32)
-                return false;
-
-            if (!password.Any(char.IsUpper) || !password.Any(char.IsLower) || !password.Any(char.IsDigit))
-                return false;
-
-            if (password.Contains(' ') || password != password2)
-                return false;
-
-            return password.Any(char.IsSymbol) || password.Any(char.IsPunctuation);
+            return password.Length >= 8 && password.Length <= 32
+       && password.Any(char.IsUpper) && password.Any(char.IsLower) && password.Any(char.IsDigit)
+       && !password.Contains(' ') && password == password2
+       && (password.Any(char.IsSymbol) || password.Any(char.IsPunctuation));
         }
         private void createPassBtn_Click(object sender, EventArgs e)
         {
@@ -253,42 +263,29 @@ namespace File_Protector
                     throw new ArgumentException("Value returned null or empty.", nameof(createPassTxt));
 
                 if (!CheckPasswordValidity(createPassTxt.Text, confirmPasswordTxt.Text))
-                {
-                    throw new ArgumentException("Password must contain between 8 and 32 characters. " +
-                        "It also must include:\n1.) At least one uppercase letter.\n2.) At least one lowercase letter.\n" +
-                        "3.) At least one number.\n4.) At least one special character.\n5.) Must not contain any spaces.\n" +
-                        "6.) Both passwords must match.\n", nameof(createPassTxt));
-                }
+                    throw new ArgumentException("Invalid password.");
 
-
-                var _appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                var _rootFolder = System.IO.Path.Combine(_appData, "User Data");
-                var path = System.IO.Path.Combine(_appData, _rootFolder, "User Data", "UserKeys.txt");
-
-
+                var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "User Data", "User Data", "UserKeys.txt");
                 string header = @"=========////(DO NOT modify this file as doing so may cause a loss of data.)\\\\=========";
 
                 if (!File.Exists(path))
                     File.WriteAllText(path, header + "\n");
-
-                userSalt = DataConversionHelpers.ByteArrayToBase64String(Crypto.RndByteSized(256 / 8));
-                userKey = Crypto.deriveKey(createPassTxt.Text, Encoding.UTF8.GetBytes(userSalt), 256 / 8 / 2);
-                userEncryptedKey = Crypto.deriveKey(userKey, Encoding.UTF8.GetBytes(userSalt), 256 / 8 / 2);
+                UserSalt = DataConversionHelpers.ByteArrayToHexString(Crypto.RndByteSized(Crypto.saltSize));
+                UserKey = Crypto.DeriveKey(createPassTxt.Text, Encoding.UTF8.GetBytes(UserSalt));
+                UserEncryptedKey = Crypto.DeriveKey(UserKey, Encoding.UTF8.GetBytes(UserSalt));
 
                 string userName = AuthenticateUser.CurrentLoggedInUser;
                 string[] lines = File.ReadAllLines(path);
 
-                int index = Array.IndexOf(lines, userName);
-                if (index != -1)
+                if (Array.IndexOf(lines, userName) != -1)
                 {
                     MessageBox.Show("User already has a unique key assigned.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
 
-                File.AppendAllText(path, "Username: " + "\n" + AuthenticateUser.CurrentLoggedInUser + "\n" + "Salt: " + "\n" + userSalt + "\n" + "Key: " + "\n" + userEncryptedKey + "\n");
+                File.AppendAllText(path, "Username: \n" + AuthenticateUser.CurrentLoggedInUser + "\n" + "Salt: \n" + UserSalt + "\n" + "Key: \n" + UserEncryptedKey + "\n");
 
                 MessageBox.Show("Key was made successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
             }
             catch (ArgumentException ex)
             {
@@ -297,15 +294,17 @@ namespace File_Protector
             }
         }
 
-            private static string GetUserInfoFilePath()
+        private static string GetUserInfoFilePath()
         {
             try
             {
-                var _appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                var _rootFolder = System.IO.Path.Combine(_appData, "User Data");
-                var path = System.IO.Path.Combine(_appData, _rootFolder, "User Data", "UserKeys.txt");
+                var appDataFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                var rootFolder = Path.Combine(appDataFolderPath, "User Data");
+                var path = Path.Combine(appDataFolderPath, rootFolder, "User Data", "UserKeys.txt");
+
                 if (!File.Exists(path))
-                    throw new ArgumentException("Value returned null or empty.", nameof(path));
+                    throw new ArgumentException("Invalid file path.", nameof(path));
+
                 return path;
             }
             catch (ArgumentException ex)
@@ -317,20 +316,24 @@ namespace File_Protector
         private void enterPassBtn_Click(object sender, EventArgs e)
         {
             string path = GetUserInfoFilePath();
+
             if (path == null)
             {
                 MessageBox.Show("File does not exist.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            if (enterPassTxt.Text == string.Empty)
+
+            if (string.IsNullOrEmpty(enterPassTxt.Text))
             {
                 MessageBox.Show("Value cannot be empty or null.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
+
             try
             {
-                if (AuthenticateUser.CurrentLoggedInUser == null)
+                if (string.IsNullOrEmpty(AuthenticateUser.CurrentLoggedInUser))
                     throw new ArgumentException("Value returned empty or null.", nameof(AuthenticateUser.CurrentLoggedInUser));
+
                 string userName = AuthenticateUser.CurrentLoggedInUser;
                 string[] lines = File.ReadAllLines(path);
 
@@ -341,23 +344,23 @@ namespace File_Protector
                     return;
                 }
 
-                userSalt = lines[index + 2];
-                userEncryptedKey = lines[index + 4];
+                UserSalt = lines[index + 2];
+                UserEncryptedKey = lines[index + 4];
 
                 string enteredPassword = enterPassTxt.Text;
-                byte[] saltBytes = Encoding.UTF8.GetBytes(userSalt);
+                byte[] saltBytes = Encoding.UTF8.GetBytes(UserSalt);
 
-                string derivedKey = Crypto.deriveKey(enteredPassword, saltBytes, 256 / 8 / 2);
-                string derivedCompareKey = Crypto.deriveKey(derivedKey, saltBytes, 256 / 8 / 2);
+                string derivedKey = Crypto.DeriveKey(enteredPassword, saltBytes);
+                string derivedCompareKey = Crypto.DeriveKey(derivedKey, saltBytes);
 
-                if (derivedCompareKey == userEncryptedKey)
+                if (derivedCompareKey == UserEncryptedKey)
                 {
                     MessageBox.Show("Success. Key will be printed to the output textbox. " +
                         "You may use this key to encrypt and decrypt files. " +
                         "Make sure you do NOT lose the password as you will lose access to any files encrypted using that key.",
                         "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                    keyTxtBox.Text = derivedKey; // Changed from "userKey" to "derivedKey"
+                    keyTxtBox.Text = derivedKey;
                 }
                 else
                 {
