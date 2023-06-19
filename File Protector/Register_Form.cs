@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Text;
 
 #pragma warning disable
 namespace File_Protector
@@ -53,9 +54,9 @@ namespace File_Protector
             {
                 if (!exists)
                 {
-                    byte[] salt = Crypto.RndByteSized(Crypto.SaltSize);
-                    string hashPassword = Crypto.HashPasswordV2(passTxt.Text, salt);
-                    string saltString = Convert.ToBase64String(salt);
+                    string salt = DataConversionHelpers.ByteArrayToBase64String(Crypto.RndByteSized(Crypto.SaltSize));
+                    string hashPassword = Crypto.HashPasswordV2(passTxt.Text, Encoding.UTF8.GetBytes(salt));
+                    string saltString = salt;
 
                     File.AppendAllText(filePath, $"\nUser:\n{userTxt.Text}\nSalt:\n{saltString.Trim()}\nHash:\n{hashPassword.Trim()}\n");
 
