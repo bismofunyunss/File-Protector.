@@ -270,7 +270,7 @@ namespace File_Protector
 
                 if (!File.Exists(path))
                     File.WriteAllText(path, header + "\n");
-                UserSalt = DataConversionHelpers.ByteArrayToHexString(Crypto.RndByteSized(Crypto.saltSize));
+                UserSalt = DataConversionHelpers.ByteArrayToHexString(Crypto.RndByteSized(Crypto.SaltSize));
                 UserKey = Crypto.DeriveKey(createPassTxt.Text, Encoding.UTF8.GetBytes(UserSalt));
                 UserEncryptedKey = Crypto.DeriveKey(UserKey, Encoding.UTF8.GetBytes(UserSalt));
 

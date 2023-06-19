@@ -5,10 +5,10 @@ using Konscious.Security.Cryptography;
 
 public static class Crypto
 {
-    private const int _keyBits = 128;
-    private const int _iterations = 50;
-    private const double _memorySize = 1024 * 1024 * 8; //8MB
-    public static readonly int saltSize = 32; // 64 Bit
+    private const int KeyBits = 128;
+    private const int Iterations = 50;
+    private const double MemorySize = 1024 * 1024 * 8; // 8MB
+    public static readonly int SaltSize = 32; // 64 Bit
     public static string Salt { get; set; } = string.Empty;
     public static string Hash { get; set; } = string.Empty;
 
@@ -18,10 +18,10 @@ public static class Crypto
         {
             Salt = salt,
             DegreeOfParallelism = Environment.ProcessorCount,
-            Iterations = _iterations,
-            MemorySize = (int)_memorySize
+            Iterations = Iterations,
+            MemorySize = (int)MemorySize
         };
-        return Convert.ToHexString(argon2.GetBytes(_keyBits / 8));
+        return Convert.ToHexString(argon2.GetBytes(KeyBits / 8));
     }
 
     public static string? DeriveKey(string password, byte[] salt)
@@ -32,10 +32,10 @@ public static class Crypto
             {
                 Salt = salt,
                 DegreeOfParallelism = Environment.ProcessorCount,
-                Iterations = _iterations,
-                MemorySize = (int)_memorySize
+                Iterations = Iterations,
+                MemorySize = (int)MemorySize
             };
-            return Convert.ToHexString(argon2.GetBytes(_keyBits / 8));
+            return Convert.ToHexString(argon2.GetBytes(KeyBits / 8));
         }
         catch (Exception ex)
         {
@@ -50,14 +50,9 @@ public static class Crypto
     }
 
     private static readonly RandomNumberGenerator rndNum = RandomNumberGenerator.Create();
-    private const int SaltBitSize = 512;
-    private static byte[] SaltBytes = new byte[SaltBitSize / 8];
-    private const int BlockBitSize = 128;
-    private const int KeyBitSize = 256;
-    private const int IVBit = 128;
     public static string? GenerateRndKey()
     {
-       byte[]? Key = RndByteSized(128 * 16);
+       byte[]? Key = RndByteSized(SaltSize);
         return Key != null ? DataConversionHelpers.ByteArrayToHexString(Key) : null;
     }
     private static int RndInt()
@@ -79,6 +74,11 @@ public static class Crypto
         return buffer;
     }
 #pragma warning disable
+    private const int SaltBitSize = 512;
+    private static byte[] SaltBytes = new byte[SaltBitSize / 8];
+    private const int BlockBitSize = 128;
+    private const int KeyBitSize = 256;
+    private const int IVBit = 128;
     public static byte[]? Encrypt(byte[]? PlainText, byte[]? Key)
     {
         try
