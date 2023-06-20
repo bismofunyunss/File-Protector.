@@ -1,6 +1,8 @@
 ﻿using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
+using System.Xml.Linq;
 using Konscious.Security.Cryptography;
 
 public static class Crypto
@@ -8,12 +10,12 @@ public static class Crypto
     private const int KeyBits = 128;
     private const int Iterations = 50;
     private const double MemorySize = 1024 * 1024 * 8; // 8MB
-    public static readonly int SaltSize = 32; // 64 Bit
+    public static readonly int SaltSize = 48; // 64 Bit
     public static string Salt { get; set; } = string.Empty;
     public static string Hash { get; set; } = string.Empty;
-
-    public static string HashPasswordV2(string password, byte[] salt)
+    public static async Task<string?> HashPasswordV2Async(string password, byte[] salt)
     {
+
         using var argon2 = new Argon2id(Encoding.UTF8.GetBytes(password))
         {
             Salt = salt,
@@ -21,10 +23,39 @@ public static class Crypto
             Iterations = Iterations,
             MemorySize = (int)MemorySize
         };
-        return Convert.ToHexString(argon2.GetBytes(KeyBits / 8));
+        try
+        {
+            return Convert.ToHexString(await argon2.GetBytesAsync(KeyBits / 8).ConfigureAwait(false));
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message);
+            ErrorLogging.ErrorLog(ex);
+            return null;
+        }
     }
+    public static async Task<string?> DeriveKeyAsync(string password, byte[] salt)
+    {
 
-    public static string? DeriveKey(string password, byte[] salt)
+        using var argon2 = new Argon2id(Encoding.UTF8.GetBytes(password))
+        {
+            Salt = salt,
+            DegreeOfParallelism = Environment.ProcessorCount,
+            Iterations = Iterations,
+            MemorySize = (int)MemorySize
+        };
+        try
+        {
+            return Convert.ToHexString(await argon2.GetBytesAsync(KeyBits / 8).ConfigureAwait(false));
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message);
+            ErrorLogging.ErrorLog(ex);
+            return null;
+        }
+    }
+    public static async Task<string?> DeriveKey(string password, byte[] salt)
     {
         try
         {
@@ -35,25 +66,34 @@ public static class Crypto
                 Iterations = Iterations,
                 MemorySize = (int)MemorySize
             };
-            return Convert.ToHexString(argon2.GetBytes(KeyBits / 8));
+            return Convert.ToHexString(await argon2.GetBytesAsync(KeyBits / 8).ConfigureAwait(false));
         }
-        catch (Exception ex)
+        catch (OperationCanceledException ex)
         {
             MessageBox.Show(ex.Message);
             ErrorLogging.ErrorLog(ex);
             return null;
         }
     }
-    public static bool ComparePassword(string hash)
+    public static async Task<bool?> ComparePassword(string hash)
     {
-        return Hash != null && CryptographicOperations.FixedTimeEquals(Convert.FromHexString(Hash), Convert.FromHexString(hash));
+        if (Hash != null)
+        {
+            return await Task.Run(() =>
+            {
+                return CryptographicOperations.FixedTimeEquals(DataConversionHelpers.HexStringToByteArray( hash), DataConversionHelpers.HexStringToByteArray(Hash));
+            }).ConfigureAwait(false);
+        }
+
+        return null;
+       // return Hash != null && CryptographicOperations.FixedTimeEquals(Convert.FromHexString(Hash), Convert.FromHexString(hash));
     }
 
     private static readonly RandomNumberGenerator rndNum = RandomNumberGenerator.Create();
     public static string? GenerateRndKey()
     {
-       byte[]? Key = RndByteSized(SaltSize);
-        return Key != null ? DataConversionHelpers.ByteArrayToHexString(Key) : null;
+        byte[]? Key = RndByteSized(KeyBits / 8);
+        return Key != null ? DataConversionHelpers.ByteArrayToHexString(Key)?.ToUpper(System.Globalization.CultureInfo.CurrentCulture) : null;
     }
     private static int RndInt()
     {

@@ -33,7 +33,7 @@ namespace File_Protector
             return password.Any(char.IsSymbol) || password.Any(char.IsPunctuation);
         }
 
-        private void RegisterUser()
+        private async void RegisterUser()
         {
             string rootFolder = CreateDirectoryIfNotExists("User Data");
             string userInfoFolder = CreateDirectoryIfNotExists(Path.Combine(rootFolder, "User Data"));
@@ -49,14 +49,13 @@ namespace File_Protector
             }
 
             bool exists = AuthenticateUser.UserExists(userTxt.Text);
-
             try
             {
                 if (!exists)
                 {
-                    string salt = DataConversionHelpers.ByteArrayToBase64String(Crypto.RndByteSized(Crypto.SaltSize));
-                    string hashPassword = Crypto.HashPasswordV2(passTxt.Text, Encoding.UTF8.GetBytes(salt));
-                    string saltString = salt;
+                    byte[] salt = Crypto.RndByteSized(Crypto.SaltSize);
+                    string hashPassword = await Crypto.HashPasswordV2Async(passTxt.Text, salt);
+                    string saltString = DataConversionHelpers.ByteArrayToBase64String(salt);
 
                     File.AppendAllText(filePath, $"\nUser:\n{userTxt.Text}\nSalt:\n{saltString.Trim()}\nHash:\n{hashPassword.Trim()}\n");
 

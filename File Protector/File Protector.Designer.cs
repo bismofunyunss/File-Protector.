@@ -38,6 +38,8 @@
             Pass_Word = new Label();
             Userinpt_Text = new TextBox();
             User_Name = new Label();
+            statusLbl = new Label();
+            statusOutputLbl = new Label();
             groupBox1.SuspendLayout();
             SuspendLayout();
             // 
@@ -55,7 +57,7 @@
             groupBox1.ForeColor = Color.WhiteSmoke;
             groupBox1.Location = new Point(12, 12);
             groupBox1.Name = "groupBox1";
-            groupBox1.Size = new Size(568, 287);
+            groupBox1.Size = new Size(568, 296);
             groupBox1.TabIndex = 0;
             groupBox1.TabStop = false;
             groupBox1.Text = "Sign In";
@@ -89,7 +91,7 @@
             Reg_Btn.Name = "Reg_Btn";
             Reg_Btn.Size = new Size(556, 40);
             Reg_Btn.TabIndex = 5;
-            Reg_Btn.Text = "Click Here If You Don't Have An Account";
+            Reg_Btn.Text = "&Click Here If You Don't Have An Account";
             Reg_Btn.UseVisualStyleBackColor = true;
             Reg_Btn.Click += Reg_Btn_Click;
             // 
@@ -102,7 +104,7 @@
             Login_Btn.Name = "Login_Btn";
             Login_Btn.Size = new Size(556, 40);
             Login_Btn.TabIndex = 4;
-            Login_Btn.Text = "Sign In";
+            Login_Btn.Text = "&Sign In";
             Login_Btn.UseVisualStyleBackColor = true;
             Login_Btn.Click += Login_Btn_Click;
             // 
@@ -143,13 +145,37 @@
             User_Name.TabIndex = 0;
             User_Name.Text = "Username";
             // 
+            // statusLbl
+            // 
+            statusLbl.AutoSize = true;
+            statusLbl.Font = new Font("Segoe UI Black", 9F, FontStyle.Bold, GraphicsUnit.Point);
+            statusLbl.ForeColor = Color.WhiteSmoke;
+            statusLbl.Location = new Point(12, 311);
+            statusLbl.Name = "statusLbl";
+            statusLbl.Size = new Size(85, 25);
+            statusLbl.TabIndex = 1;
+            statusLbl.Text = "Status ::";
+            // 
+            // statusOutputLbl
+            // 
+            statusOutputLbl.AutoSize = true;
+            statusOutputLbl.Font = new Font("Segoe UI Black", 9F, FontStyle.Bold, GraphicsUnit.Point);
+            statusOutputLbl.ForeColor = Color.WhiteSmoke;
+            statusOutputLbl.Location = new Point(103, 311);
+            statusOutputLbl.Name = "statusOutputLbl";
+            statusOutputLbl.Size = new Size(64, 25);
+            statusOutputLbl.TabIndex = 2;
+            statusOutputLbl.Text = "Idle...";
+            // 
             // FileProtector
             // 
             AcceptButton = Login_Btn;
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.ControlDarkDark;
-            ClientSize = new Size(591, 311);
+            ClientSize = new Size(591, 344);
+            Controls.Add(statusOutputLbl);
+            Controls.Add(statusLbl);
             Controls.Add(groupBox1);
             FormBorderStyle = FormBorderStyle.Fixed3D;
             Icon = (Icon)resources.GetObject("$this.Icon");
@@ -159,6 +185,7 @@
             groupBox1.ResumeLayout(false);
             groupBox1.PerformLayout();
             ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
@@ -172,5 +199,7 @@
         private Button Login_Btn;
         private CheckBox unmaskPass;
         private CheckBox saveLoginCheckBox;
+        private Label statusLbl;
+        private Label statusOutputLbl;
     }
 }
