@@ -38,6 +38,8 @@
             passTxt = new TextBox();
             passWrd = new Label();
             userTxt = new TextBox();
+            statusLbl = new Label();
+            statusOutputLbl = new Label();
             regBox.SuspendLayout();
             SuspendLayout();
             // 
@@ -149,13 +151,37 @@
             userTxt.Size = new Size(429, 32);
             userTxt.TabIndex = 0;
             // 
+            // statusLbl
+            // 
+            statusLbl.AutoSize = true;
+            statusLbl.Font = new Font("Segoe UI Black", 9F, FontStyle.Bold, GraphicsUnit.Point);
+            statusLbl.ForeColor = Color.WhiteSmoke;
+            statusLbl.Location = new Point(12, 318);
+            statusLbl.Name = "statusLbl";
+            statusLbl.Size = new Size(85, 25);
+            statusLbl.TabIndex = 10;
+            statusLbl.Text = "Status ::";
+            // 
+            // statusOutputLbl
+            // 
+            statusOutputLbl.AutoSize = true;
+            statusOutputLbl.Font = new Font("Segoe UI Black", 9F, FontStyle.Bold, GraphicsUnit.Point);
+            statusOutputLbl.ForeColor = Color.WhiteSmoke;
+            statusOutputLbl.Location = new Point(103, 318);
+            statusOutputLbl.Name = "statusOutputLbl";
+            statusOutputLbl.Size = new Size(64, 25);
+            statusOutputLbl.TabIndex = 11;
+            statusOutputLbl.Text = "Idle...";
+            // 
             // Register_Form
             // 
             AcceptButton = registerBtn;
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.ControlDarkDark;
-            ClientSize = new Size(478, 324);
+            ClientSize = new Size(478, 352);
+            Controls.Add(statusOutputLbl);
+            Controls.Add(statusLbl);
             Controls.Add(regBox);
             Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "Register_Form";
@@ -164,6 +190,7 @@
             regBox.ResumeLayout(false);
             regBox.PerformLayout();
             ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
@@ -177,5 +204,7 @@
         private CheckBox unmaskPass;
         private TextBox confirmPassTxt;
         private Label confirmPassLbl;
+        private Label statusLbl;
+        private Label statusOutputLbl;
     }
 }

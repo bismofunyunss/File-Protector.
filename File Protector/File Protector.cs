@@ -8,6 +8,7 @@ namespace File_Protector
         }
 #pragma warning disable
         private static bool isAnimating;
+       
         private async void Login_Btn_Click(object sender, EventArgs e)
         {
             bool _userExists = AuthenticateUser.UserExists(Userinpt_Text.Text);
@@ -23,7 +24,6 @@ namespace File_Protector
                     Login_Btn.Enabled = false;
                     Reg_Btn.Enabled = false;
                     StartAnimation();
-                    CancellationTokenSource tokenSource = new CancellationTokenSource();
                     AuthenticateUser.GetUserInfo(Userinpt_Text.Text);
                     string _hashedInput = await Task.Run(() => Crypto.HashPasswordV2Async(UserPasswrd_Inpt.Text, Convert.FromBase64String(Crypto.Salt)));
                     bool _LoginSuccessful = (bool)await Crypto.ComparePassword(_hashedInput);

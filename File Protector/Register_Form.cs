@@ -10,6 +10,7 @@ namespace File_Protector
         {
             InitializeComponent();
         }
+        private static bool isAnimating;
         public static bool UserExists(string userName)
         {
             string path = GetUserInfoFilePath();
@@ -53,6 +54,7 @@ namespace File_Protector
             {
                 if (!exists)
                 {
+                    StartAnimation();
                     byte[] salt = Crypto.RndByteSized(Crypto.SaltSize);
                     string hashPassword = await Crypto.HashPasswordV2Async(passTxt.Text, salt);
                     string saltString = DataConversionHelpers.ByteArrayToBase64String(salt);
@@ -137,6 +139,26 @@ namespace File_Protector
         private void Register_Form_FormClosing(object sender, FormClosingEventArgs e)
         {
             Application.Exit();
+        }
+        private async void StartAnimation()
+        {
+            isAnimating = true;
+            await AnimateLabel();
+        }
+
+        private async Task AnimateLabel()
+        {
+            while (isAnimating)
+            {
+                statusOutputLbl.Text = "Creating account";
+
+                // Add animated periods
+                for (int i = 0; i < 4; i++)
+                {
+                    statusOutputLbl.Text += ".";
+                    await Task.Delay(400); // Delay between each period
+                }
+            }
         }
     }
 }

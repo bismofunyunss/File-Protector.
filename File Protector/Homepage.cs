@@ -267,6 +267,8 @@ namespace File_Protector
 
                 if (!File.Exists(path))
                     File.WriteAllText(path, header + "\n");
+                creatingKey = true;
+                StartAnimation();
                 UserSalt = DataConversionHelpers.ByteArrayToBase64String(Crypto.RndByteSized(Crypto.SaltSize));
                 UserKey = await Crypto.DeriveKey(createPassTxt.Text, DataConversionHelpers.Base64StringToByteArray(UserSalt));
                 UserEncryptedKey = await Crypto.DeriveKey(UserKey, DataConversionHelpers.Base64StringToByteArray(UserSalt));
@@ -346,6 +348,7 @@ namespace File_Protector
 
                 string enteredPassword = enterPassTxt.Text;
 
+                derivingKey = true;
                 StartAnimation();
                 string? derivedKey = await Crypto.DeriveKeyAsync(enteredPassword, DataConversionHelpers.Base64StringToByteArray(UserSalt));
                 string? derivedCompareKey = await Crypto.DeriveKeyAsync(derivedKey, DataConversionHelpers.Base64StringToByteArray(UserSalt));
@@ -353,12 +356,12 @@ namespace File_Protector
                 if (derivedCompareKey == UserEncryptedKey)
                 {
                     isAnimating = false;
+                    derivingKey = false;
                     currentStatusLbl.Text = "Idle...";
                     MessageBox.Show("Success. Key will be printed to the output textbox. " +
                         "You may use this key to encrypt and decrypt files. " +
                         "Make sure you do NOT lose the password as you will lose access to any files encrypted using that key.",
                         "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    
                     keyTxtBox.Text = derivedKey;
                 }
                 else
