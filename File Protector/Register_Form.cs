@@ -11,6 +11,7 @@ namespace File_Protector
             InitializeComponent();
         }
         private static bool isAnimating;
+  
         public static bool UserExists(string userName)
         {
             string path = GetUserInfoFilePath();

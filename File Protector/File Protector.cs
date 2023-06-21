@@ -8,7 +8,7 @@ namespace File_Protector
         }
 #pragma warning disable
         private static bool isAnimating;
-       
+
         private async void Login_Btn_Click(object sender, EventArgs e)
         {
             bool _userExists = AuthenticateUser.UserExists(Userinpt_Text.Text);
@@ -21,12 +21,10 @@ namespace File_Protector
             {
                 if (_userExists)
                 {
-                    Login_Btn.Enabled = false;
-                    Reg_Btn.Enabled = false;
                     StartAnimation();
                     AuthenticateUser.GetUserInfo(Userinpt_Text.Text);
                     string _hashedInput = await Task.Run(() => Crypto.HashPasswordV2Async(UserPasswrd_Inpt.Text, Convert.FromBase64String(Crypto.Salt)));
-                    bool _LoginSuccessful = (bool)await Crypto.ComparePassword(_hashedInput);
+                    bool _LoginSuccessful = (bool)await Task.Run(() => Crypto.ComparePassword(_hashedInput));
                     if (_LoginSuccessful)
                     {
                         UserLog.LogUser(Userinpt_Text.Text);
@@ -73,7 +71,7 @@ namespace File_Protector
             {
                 UserPasswrd_Inpt.UseSystemPasswordChar = false;
                 return;
-            }
+            }           
             UserPasswrd_Inpt.UseSystemPasswordChar = true;
         }
         private void File_Protector_Load(object sender, EventArgs e)

@@ -3,6 +3,8 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Windows.Navigation;
+using Windows.Graphics.Printing.PrintSupport;
+using Windows.Web.UI;
 
 #pragma warning disable
 namespace File_Protector
@@ -119,28 +121,36 @@ namespace File_Protector
         {
             keyTxtBox.Text = Crypto.GenerateRndKey();
         }
-        private void exportKeyBtn_Click(object sender, EventArgs e)
+        private void loadKeyBtn_Click(object sender, EventArgs e)
         {
-            using var saveFileDialog = new SaveFileDialog
+            try
             {
-                Filter = "Txt files(*.txt) | *.txt",
-                FilterIndex = 1,
-                ShowHiddenFiles = true,
-                RestoreDirectory = true,
-                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory)
-            };
-
-            if (saveFileDialog.ShowDialog() == DialogResult.OK)
-            {
-                string fileName = saveFileDialog.FileName;
-                if (!string.IsNullOrEmpty(fileName))
+                if (keyTxtBox.Text != File.ReadAllText("Key.txt"))
                 {
-                    File.WriteAllText(fileName, keyTxtBox.Text);
-                    MessageBox.Show("File Saved Successfully!", "Save File", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    return;
+                    keyTxtBox.Clear();
+                    string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Key.txt");
+                    string txt = File.ReadAllText(filePath);
+                    keyTxtBox.AppendText(txt);
                 }
             }
-            MessageBox.Show("Error saving file.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            catch (IOException ex)
+            {
+                ShowErrorAndLog(ex, ex.Message);
+                return;
+            }                                                                                                                                                                                                                                                                                                         
+        }
+        private void exportKeyBtn_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Key.txt");
+                File.WriteAllText(filePath, keyTxtBox.Text);
+            }
+            catch (IOException ex)
+            {
+                ShowErrorAndLog(ex, ex.Message);
+                return;
+            }
         }
         private void encryptBtn_Click(object sender, EventArgs e)
         {
@@ -367,7 +377,7 @@ namespace File_Protector
                 else
                 {
                     MessageBox.Show("Passwords do not match.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+                }                                                                                                                                                                                                                                                                                                                                                                         
             }
             catch (ArgumentException ex)
             {

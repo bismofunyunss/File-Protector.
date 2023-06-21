@@ -1,8 +1,6 @@
 ﻿using System.IO;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading;
-using System.Xml.Linq;
 using Konscious.Security.Cryptography;
 
 public static class Crypto
@@ -15,7 +13,6 @@ public static class Crypto
     public static string Hash { get; set; } = string.Empty;
     public static async Task<string?> HashPasswordV2Async(string password, byte[] salt)
     {
-
         using var argon2 = new Argon2id(Encoding.UTF8.GetBytes(password))
         {
             Salt = salt,
