@@ -2,9 +2,6 @@
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
-using System.Windows.Navigation;
-using Windows.Graphics.Printing.PrintSupport;
-using Windows.Web.UI;
 
 #pragma warning disable
 namespace File_Protector
@@ -39,6 +36,7 @@ namespace File_Protector
             }
             catch (CryptographicException ex)
             {
+                isAnimating = false;
                 ShowErrorAndLog(ex, "File encryption error.");
             }
             return null;
@@ -114,42 +112,6 @@ namespace File_Protector
             {
                 rainbowLabel(welcomeLbl);
                 Thread.Sleep(150);
-            }
-        }
-
-        private void generateRnd32_Click(object sender, EventArgs e)
-        {
-            keyTxtBox.Text = Crypto.GenerateRndKey();
-        }
-        private void loadKeyBtn_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                if (keyTxtBox.Text != File.ReadAllText("Key.txt"))
-                {
-                    keyTxtBox.Clear();
-                    string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Key.txt");
-                    string txt = File.ReadAllText(filePath);
-                    keyTxtBox.AppendText(txt);
-                }
-            }
-            catch (IOException ex)
-            {
-                ShowErrorAndLog(ex, ex.Message);
-                return;
-            }                                                                                                                                                                                                                                                                                                         
-        }
-        private void exportKeyBtn_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Key.txt");
-                File.WriteAllText(filePath, keyTxtBox.Text);
-            }
-            catch (IOException ex)
-            {
-                ShowErrorAndLog(ex, ex.Message);
-                return;
             }
         }
         private void encryptBtn_Click(object sender, EventArgs e)
@@ -240,6 +202,7 @@ namespace File_Protector
                     currentStatusLbl.ForeColor = Color.WhiteSmoke;
                     loadedFile = null;
                     fileOpened = false;
+
                 }
             }
             catch (Exception ex)
@@ -289,16 +252,21 @@ namespace File_Protector
                 if (Array.IndexOf(lines, userName) != -1)
                 {
                     MessageBox.Show("User already has a unique key assigned.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    isAnimating = false;
                     return;
                 }
 
                 File.AppendAllText(path, "Username: \n" + AuthenticateUser.CurrentLoggedInUser + "\n" + "Salt: \n" + UserSalt + "\n" + "Key: \n" + UserEncryptedKey + "\n");
 
                 MessageBox.Show("Key was made successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                creatingKey = false;
+                isAnimating = false;
             }
             catch (ArgumentException ex)
             {
                 MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                isAnimating = false;
+                creatingKey = false;
                 ErrorLogging.ErrorLog(ex);
             }
         }
@@ -358,6 +326,7 @@ namespace File_Protector
 
                 string enteredPassword = enterPassTxt.Text;
 
+                creatingKey = false;
                 derivingKey = true;
                 StartAnimation();
                 string? derivedKey = await Crypto.DeriveKeyAsync(enteredPassword, DataConversionHelpers.Base64StringToByteArray(UserSalt));
@@ -365,23 +334,26 @@ namespace File_Protector
 
                 if (derivedCompareKey == UserEncryptedKey)
                 {
-                    isAnimating = false;
-                    derivingKey = false;
-                    currentStatusLbl.Text = "Idle...";
                     MessageBox.Show("Success. Key will be printed to the output textbox. " +
                         "You may use this key to encrypt and decrypt files. " +
                         "Make sure you do NOT lose the password as you will lose access to any files encrypted using that key.",
                         "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    isAnimating = false;
+                    derivingKey = false;
                     keyTxtBox.Text = derivedKey;
                 }
                 else
                 {
                     MessageBox.Show("Passwords do not match.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }                                                                                                                                                                                                                                                                                                                                                                         
+                    derivingKey = false;
+                    isAnimating = false;
+                }
             }
             catch (ArgumentException ex)
             {
                 MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                derivingKey = false;
+                isAnimating = false;
             }
         }
         private async void StartAnimation()
@@ -408,6 +380,8 @@ namespace File_Protector
                     currentStatusLbl.Text += ".";
                     await Task.Delay(400); // Delay between each period
                 }
+                if (!isAnimating)
+                    currentStatusLbl.Text = "Idle...";
             }
         }
     }

@@ -75,12 +75,14 @@ namespace File_Protector
                 }
                 else
                 {
+                    isAnimating = false;
                     throw new ArgumentException("Username already exists", userTxt.Text);
                 }
             }
             catch (ArgumentException ex)
             {
                 MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                isAnimating = false;
                 ErrorLogging.ErrorLog(ex);
             }
         }

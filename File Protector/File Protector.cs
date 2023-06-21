@@ -43,16 +43,19 @@ namespace File_Protector
                     }
                     else if (!_LoginSuccessful)
                     {
+                        isAnimating = false;
                         MessageBox.Show("Log in failed! Please recheck your login credentials and try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
                 else if (!_userExists)
                 {
+                    isAnimating = false;
                     throw new ArgumentException("Username does not exist.", nameof(Userinpt_Text));
                 }
             }
             catch (ArgumentException ex)
             {
+                isAnimating = false;
                 MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 ErrorLogging.ErrorLog(ex);
             }
