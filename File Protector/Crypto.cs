@@ -24,7 +24,7 @@ public static class Crypto
         {
             return Convert.ToHexString(await argon2.GetBytesAsync(KeyBits / 8).ConfigureAwait(false));
         }
-        catch (Exception ex)
+        catch (CryptographicException ex)
         {
             MessageBox.Show(ex.Message);
             ErrorLogging.ErrorLog(ex);
@@ -45,7 +45,7 @@ public static class Crypto
         {
             return Convert.ToHexString(await argon2.GetBytesAsync(KeyBits / 8).ConfigureAwait(false));
         }
-        catch (Exception ex)
+        catch (CryptographicException ex)
         {
             MessageBox.Show(ex.Message);
             ErrorLogging.ErrorLog(ex);
@@ -110,8 +110,9 @@ public static class Crypto
     private static int BoundedInt(int min, int max)
     {
         var value = RndInt();
-        int range = max - min + 1;
+        int range = max - min;
         int result = min + (Math.Abs(value) % range);
+
         return result;
     }
     public static byte[] RndByteSized(int size)
