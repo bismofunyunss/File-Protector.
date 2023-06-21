@@ -87,10 +87,18 @@ public static class Crypto
     }
 
     private static readonly RandomNumberGenerator rndNum = RandomNumberGenerator.Create();
-    public static string? GenerateRndKey()
+    public static string? GenerateRndPassword()
     {
-        byte[]? Key = RndByteSized(KeyBits / 8);
-        return Key != null ? DataConversionHelpers.ByteArrayToHexString(Key)?.ToUpper(System.Globalization.CultureInfo.CurrentCulture) : null;
+        int len = 18;
+        StringBuilder stringBuilder = new StringBuilder();
+        string chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()-_=+[{]};:'\"<\\,.>/?";
+
+        for (int i = 0; i < len; i++)
+        {
+            int index = BoundedInt(0, chars.Length);
+            stringBuilder.Append(chars[index]);
+        }
+        return stringBuilder.ToString();
     }
     private static int RndInt()
     {
@@ -101,8 +109,10 @@ public static class Crypto
     }
     private static int BoundedInt(int min, int max)
     {
-        var seed = RndInt();
-        return new Random(seed).Next(min, max);
+        var value = RndInt();
+        int range = max - min + 1;
+        int result = min + (Math.Abs(value) % range);
+        return result;
     }
     public static byte[] RndByteSized(int size)
     {

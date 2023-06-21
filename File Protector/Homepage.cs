@@ -98,7 +98,11 @@ namespace File_Protector
                 currentStatusLbl.ForeColor = errorColor;
             }
         }
-
+        private void genKeyBtn_Click(object sender, EventArgs e)
+        {
+            passwordOutputTxt.Clear();
+            passwordOutputTxt.Text = Crypto.GenerateRndPassword();
+        }
         private void Homepage_Load(object sender, EventArgs e)
         {
             if (!worker.IsBusy)
