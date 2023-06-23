@@ -23,14 +23,15 @@ public static class Crypto
         try
         {
             bool complete = false;
+            string result = string.Empty;
             while (!complete)
             {
                 GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, true, true);
-                string result = Convert.ToHexString(await argon2.GetBytesAsync(KeyBits / 8).ConfigureAwait(false));
+                result = Convert.ToHexString(await argon2.GetBytesAsync(KeyBits / 8).ConfigureAwait(false));
                 if (!string.IsNullOrEmpty(result))
-                    return result;
+                    break;
             }
-            return null;
+            return result;
         }
         catch (CryptographicException ex)
         {
@@ -51,14 +52,15 @@ public static class Crypto
         try
         {
             bool complete = false;
+            string result = string.Empty;
             while (!complete)
             {
                 GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, true, true);
-                string result = Convert.ToHexString(await argon2.GetBytesAsync(KeyBits / 8).ConfigureAwait(false));
+                result = Convert.ToHexString(await argon2.GetBytesAsync(KeyBits / 8).ConfigureAwait(false));
                 if (!string.IsNullOrEmpty(result))
-                    return result;
+                    break;
             }
-            return null;
+            return result;
         }
         catch (CryptographicException ex)
         {

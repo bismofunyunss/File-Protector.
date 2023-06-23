@@ -47,7 +47,7 @@ namespace File_Protector
 
             if (!File.Exists(filePath))
             {
-                File.WriteAllText(filePath, header);
+                File.WriteAllText(filePath, header + "\n");
             }
 
             bool exists = AuthenticateUser.UserExists(userTxt.Text);

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Data.SqlTypes;
 using System.IO;
 using System.Security.Cryptography;
 using System.Security.Cryptography.Xml;
@@ -263,8 +264,7 @@ namespace File_Protector
                     isAnimating = false;
                     return;
                 }
-
-                File.AppendAllText(path, "Username: \n" + AuthenticateUser.CurrentLoggedInUser + "\n" + "Salt: \n" + UserSalt + "\n" + "Key: \n" + UserEncryptedKey + "\n");
+                File.AppendAllText(path, $"\nUsername:\n{AuthenticateUser.CurrentLoggedInUser}\nSalt:\n{UserSalt.Trim()}\nKey:\n{UserEncryptedKey.Trim()}\n");
 
                 MessageBox.Show("Key was made successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 creatingKey = false;
