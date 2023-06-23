@@ -5,10 +5,10 @@ using Konscious.Security.Cryptography;
 
 public static class Crypto
 {
-    private const int KeyBits = 128;
+    private static readonly int ByteSize = 24;
     private const int Iterations = 50;
-    private const double MemorySize = 1024 * 1024 * 10; // 10MB
-    public static readonly int SaltSize = 48; // 64 Bit
+    private const double MemorySize = 1024 * 1024 * 10; // 10GiB
+    public static readonly int SaltSize = 384 / 6; // 64 Bit
     public static string Salt { get; set; } = string.Empty;
     public static string Hash { get; set; } = string.Empty;
     public static async Task<string?> HashAndDeriveAsync(string password, byte[] salt)
@@ -27,7 +27,7 @@ public static class Crypto
             while (!complete)
             {
                 GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, true, true);
-                result = Convert.ToHexString(await argon2.GetBytesAsync(KeyBits / 8).ConfigureAwait(false));
+                result = Convert.ToHexString(await argon2.GetBytesAsync(ByteSize).ConfigureAwait(false));
                 if (!string.IsNullOrEmpty(result))
                     break;
             }
