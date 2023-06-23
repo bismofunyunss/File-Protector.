@@ -59,7 +59,7 @@ namespace File_Protector
                     byte[] salt = Crypto.RndByteSized(Crypto.SaltSize);
                     string hashPassword = await Crypto.HashPasswordV2Async(passTxt.Text, salt);
                     string saltString = DataConversionHelpers.ByteArrayToBase64String(salt);
-
+                    GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, true, true);
                     File.AppendAllText(filePath, $"\nUser:\n{userTxt.Text}\nSalt:\n{saltString.Trim()}\nHash:\n{hashPassword.Trim()}\n");
 
                     DialogResult dialogResult = MessageBox.Show("Registration successful! Make sure you do NOT forget your password or you will lose access " +

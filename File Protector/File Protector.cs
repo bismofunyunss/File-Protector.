@@ -25,6 +25,7 @@ namespace File_Protector
                     AuthenticateUser.GetUserInfo(Userinpt_Text.Text);
                     string _hashedInput = await Task.Run(() => Crypto.HashPasswordV2Async(UserPasswrd_Inpt.Text, Convert.FromBase64String(Crypto.Salt)));
                     bool _LoginSuccessful = (bool)await Task.Run(() => Crypto.ComparePassword(_hashedInput));
+                    GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, true, true);
                     if (_LoginSuccessful)
                     {
                         UserLog.LogUser(Userinpt_Text.Text);

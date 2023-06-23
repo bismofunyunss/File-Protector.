@@ -7,7 +7,7 @@ public static class Crypto
 {
     private const int KeyBits = 128;
     private const int Iterations = 50;
-    private const double MemorySize = 1024 * 1024 * 8; // 8MB
+    private const double MemorySize = 1024 * 1024 * 10; // 10MB
     public static readonly int SaltSize = 48; // 64 Bit
     public static string Salt { get; set; } = string.Empty;
     public static string Hash { get; set; } = string.Empty;
@@ -22,7 +22,15 @@ public static class Crypto
         };
         try
         {
-            return Convert.ToHexString(await argon2.GetBytesAsync(KeyBits / 8).ConfigureAwait(false));
+            bool complete = false;
+            while (!complete)
+            {
+                GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, true, true);
+                string result = Convert.ToHexString(await argon2.GetBytesAsync(KeyBits / 8).ConfigureAwait(false));
+                if (!string.IsNullOrEmpty(result))
+                    return result;
+            }
+            return null;
         }
         catch (CryptographicException ex)
         {
@@ -33,7 +41,6 @@ public static class Crypto
     }
     public static async Task<string?> DeriveKeyAsync(string password, byte[] salt)
     {
-
         using var argon2 = new Argon2id(Encoding.UTF8.GetBytes(password))
         {
             Salt = salt,
@@ -43,7 +50,15 @@ public static class Crypto
         };
         try
         {
-            return Convert.ToHexString(await argon2.GetBytesAsync(KeyBits / 8).ConfigureAwait(false));
+            bool complete = false;
+            while (!complete)
+            {
+                GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, true, true);
+                string result = Convert.ToHexString(await argon2.GetBytesAsync(KeyBits / 8).ConfigureAwait(false));
+                if (!string.IsNullOrEmpty(result))
+                    return result;
+            }
+            return null;
         }
         catch (CryptographicException ex)
         {
@@ -58,7 +73,7 @@ public static class Crypto
         {
             using var argon2 = new Argon2id(Encoding.UTF8.GetBytes(password))
             {
-                Salt = salt,
+                Salt = salt, 
                 DegreeOfParallelism = Environment.ProcessorCount,
                 Iterations = Iterations,
                 MemorySize = (int)MemorySize
@@ -150,11 +165,10 @@ public static class Crypto
                         cryptoStream.Write(PlainText, 0, PlainText?.Length ?? 0);
                         cryptoStream.FlushFinalBlock();
                     }
-                    Key = null;
                     cipherText = memStream.ToArray();
                 }
             }
-
+            Key = null;
             byte[] prependItems = new byte[iv.Length + SaltBytes.Length + cipherText.Length];
             Buffer.BlockCopy(iv, 0, prependItems, 0, iv.Length);
             Buffer.BlockCopy(SaltBytes, 0, prependItems, iv.Length, SaltBytes.Length);
@@ -201,12 +215,14 @@ public static class Crypto
                     {
                         plainTextStream.CopyTo(decryptStream, plainTextStream.Capacity);
                     }
+                    Key = null;
                     return memStrm.ToArray();
                 }
             }
         }
         catch (Exception ex)
         {
+            Key = null;
             ErrorLogging.ErrorLog(ex);
             string error = ex.Message + " " + ex.InnerException;
             System.Windows.Forms.MessageBox.Show(error, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);

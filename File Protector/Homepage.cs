@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.IO;
 using System.Security.Cryptography;
+using System.Security.Cryptography.Xml;
 using System.Text;
 
 #pragma warning disable
@@ -79,7 +80,6 @@ namespace File_Protector
 
                 loadedFile = Encoding.UTF8.GetString(File.ReadAllBytes(fileName));
                 fileOpened = true;
-
                 currentStatusLbl.Text = $"File Loaded! File size: {fileInfo.Length} bytes!";
                 currentStatusLbl.ForeColor = Color.LimeGreen;
             }
@@ -126,6 +126,8 @@ namespace File_Protector
 
             try
             {
+                Task<string?> encryptedID = Crypto.HashPasswordV2Async(inputString, Crypto.RndByteSized(256 / 8));
+                GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, true, true);
                 if (string.IsNullOrEmpty(keyString))
                     throw new ArgumentException("Key value was empty or null.", nameof(Key));
 
@@ -135,10 +137,12 @@ namespace File_Protector
                 string? encryptData = Encrypt(inputString, Key);
                 loadedFile = encryptData;
 
+                
                 if (string.IsNullOrEmpty(encryptData))
                     throw new Exception("Encryption value returned empty or null.");
 
                 currentStatusLbl.Text = "File Encrypted! New byte size: " + loadedFile.Length + " bytes!";
+                MessageBox.Show($"File encrypted successfully. New byte size: {loadedFile.Length} bytes!");
             }
             catch (Exception ex)
             {
@@ -157,13 +161,13 @@ namespace File_Protector
                 if (Key == null || Key.Length != 256 / 8)
                     throw new ArgumentException("Invalid key size.", nameof(Key));
 
-                string? decryptedText = Decrypt(inputData, Key);
-
-                if (string.IsNullOrEmpty(decryptedText))
-                    throw new Exception("Decryption value was empty or null.");
+                // Decrypt the encrypted data
+                string decryptedData = Decrypt(inputData, Key);
+                loadedFile = decryptedData;
 
                 currentStatusLbl.Text = "File Decrypted! New byte size: " + loadedFile.Length + " bytes!";
-                loadedFile = decryptedText;
+                MessageBox.Show($"File decrypted successfully. New byte size: {loadedFile.Length} bytes!");
+
             }
             catch (Exception ex)
             {
@@ -249,7 +253,7 @@ namespace File_Protector
                 UserSalt = DataConversionHelpers.ByteArrayToBase64String(Crypto.RndByteSized(Crypto.SaltSize));
                 UserKey = await Crypto.DeriveKey(createPassTxt.Text, DataConversionHelpers.Base64StringToByteArray(UserSalt));
                 UserEncryptedKey = await Crypto.DeriveKey(UserKey, DataConversionHelpers.Base64StringToByteArray(UserSalt));
-
+                GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, true, true);
                 string userName = AuthenticateUser.CurrentLoggedInUser;
                 string[] lines = File.ReadAllLines(path);
 
@@ -335,6 +339,7 @@ namespace File_Protector
                 StartAnimation();
                 string? derivedKey = await Crypto.DeriveKeyAsync(enteredPassword, DataConversionHelpers.Base64StringToByteArray(UserSalt));
                 string? derivedCompareKey = await Crypto.DeriveKeyAsync(derivedKey, DataConversionHelpers.Base64StringToByteArray(UserSalt));
+                GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, true, true);
 
                 if (derivedCompareKey == UserEncryptedKey)
                 {
