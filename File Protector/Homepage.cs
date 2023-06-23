@@ -127,7 +127,7 @@ namespace File_Protector
 
             try
             {
-                Task<string?> encryptedID = Crypto.HashPasswordV2Async(inputString, Crypto.RndByteSized(256 / 8));
+                Task<string?> encryptedID = Crypto.HashAndDeriveAsync(inputString, Crypto.RndByteSized(256 / 8));
                 GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, true, true);
                 if (string.IsNullOrEmpty(keyString))
                     throw new ArgumentException("Key value was empty or null.", nameof(Key));
@@ -252,8 +252,8 @@ namespace File_Protector
                 creatingKey = true;
                 StartAnimation();
                 UserSalt = DataConversionHelpers.ByteArrayToBase64String(Crypto.RndByteSized(Crypto.SaltSize));
-                UserKey = await Crypto.DeriveKey(createPassTxt.Text, DataConversionHelpers.Base64StringToByteArray(UserSalt));
-                UserEncryptedKey = await Crypto.DeriveKey(UserKey, DataConversionHelpers.Base64StringToByteArray(UserSalt));
+                UserKey = await Crypto.HashAndDeriveAsync(createPassTxt.Text, DataConversionHelpers.Base64StringToByteArray(UserSalt));
+                UserEncryptedKey = await Crypto.HashAndDeriveAsync(UserKey, DataConversionHelpers.Base64StringToByteArray(UserSalt));
                 GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, true, true);
                 string userName = AuthenticateUser.CurrentLoggedInUser;
                 string[] lines = File.ReadAllLines(path);
@@ -337,8 +337,8 @@ namespace File_Protector
                 creatingKey = false;
                 derivingKey = true;
                 StartAnimation();
-                string? derivedKey = await Crypto.DeriveKeyAsync(enteredPassword, DataConversionHelpers.Base64StringToByteArray(UserSalt));
-                string? derivedCompareKey = await Crypto.DeriveKeyAsync(derivedKey, DataConversionHelpers.Base64StringToByteArray(UserSalt));
+                string? derivedKey = await Crypto.HashAndDeriveAsync(enteredPassword, DataConversionHelpers.Base64StringToByteArray(UserSalt));
+                string? derivedCompareKey = await Crypto.HashAndDeriveAsync(derivedKey, DataConversionHelpers.Base64StringToByteArray(UserSalt));
                 GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, true, true);
 
                 if (derivedCompareKey == UserEncryptedKey)

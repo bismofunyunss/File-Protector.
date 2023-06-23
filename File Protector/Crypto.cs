@@ -11,7 +11,7 @@ public static class Crypto
     public static readonly int SaltSize = 48; // 64 Bit
     public static string Salt { get; set; } = string.Empty;
     public static string Hash { get; set; } = string.Empty;
-    public static async Task<string?> HashPasswordV2Async(string password, byte[] salt)
+    public static async Task<string?> HashAndDeriveAsync(string password, byte[] salt)
     {
         using var argon2 = new Argon2id(Encoding.UTF8.GetBytes(password))
         {
@@ -40,55 +40,7 @@ public static class Crypto
             return null;
         }
     }
-    public static async Task<string?> DeriveKeyAsync(string password, byte[] salt)
-    {
-        using var argon2 = new Argon2id(Encoding.UTF8.GetBytes(password))
-        {
-            Salt = salt,
-            DegreeOfParallelism = Environment.ProcessorCount,
-            Iterations = Iterations,
-            MemorySize = (int)MemorySize
-        };
-        try
-        {
-            bool complete = false;
-            string result = string.Empty;
-            while (!complete)
-            {
-                GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, true, true);
-                result = Convert.ToHexString(await argon2.GetBytesAsync(KeyBits / 8).ConfigureAwait(false));
-                if (!string.IsNullOrEmpty(result))
-                    break;
-            }
-            return result;
-        }
-        catch (CryptographicException ex)
-        {
-            MessageBox.Show(ex.Message);
-            ErrorLogging.ErrorLog(ex);
-            return null;
-        }
-    }
-    public static async Task<string?> DeriveKey(string password, byte[] salt)
-    {
-        try
-        {
-            using var argon2 = new Argon2id(Encoding.UTF8.GetBytes(password))
-            {
-                Salt = salt, 
-                DegreeOfParallelism = Environment.ProcessorCount,
-                Iterations = Iterations,
-                MemorySize = (int)MemorySize
-            };
-            return Convert.ToHexString(await argon2.GetBytesAsync(KeyBits / 8).ConfigureAwait(false));
-        }
-        catch (OperationCanceledException ex)
-        {
-            MessageBox.Show(ex.Message);
-            ErrorLogging.ErrorLog(ex);
-            return null;
-        }
-    }
+   
     public static async Task<bool?> ComparePassword(string hash)
     {
         if (Hash != null)
