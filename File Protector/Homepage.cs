@@ -138,7 +138,7 @@ namespace File_Protector
                 string? encryptData = Encrypt(inputString, Key);
                 loadedFile = encryptData;
 
-                
+
                 if (string.IsNullOrEmpty(encryptData))
                     throw new Exception("Encryption value returned empty or null.");
 

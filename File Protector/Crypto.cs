@@ -8,7 +8,7 @@ public static class Crypto
     private static readonly int ByteSize = 24;
     private const int Iterations = 50;
     private const double MemorySize = 1024 * 1024 * 10; // 10GiB
-    public static readonly int SaltSize = 384 / 6; // 64 Bit
+    public static readonly int SaltSize = 384 / 8; // 64 Bit
     public static string Salt { get; set; } = string.Empty;
     public static string Hash { get; set; } = string.Empty;
     public static async Task<string?> HashAndDeriveAsync(string password, byte[] salt)
@@ -179,7 +179,7 @@ public static class Crypto
             Key = null;
             ErrorLogging.ErrorLog(ex);
             string error = ex.Message + " " + ex.InnerException;
-            System.Windows.Forms.MessageBox.Show(error, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(error, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return null;
         }
 #pragma warning restore
