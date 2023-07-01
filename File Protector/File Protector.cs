@@ -23,7 +23,7 @@ namespace File_Protector
                 {
                     StartAnimation();
                     AuthenticateUser.GetUserInfo(Userinpt_Text.Text);
-                    string _hashedInput = await Task.Run(() => Crypto.HashAndDeriveAsync(UserPasswrd_Inpt.Text, Convert.FromBase64String(Crypto.Salt)));
+                    string _hashedInput = await Task.Run(() => Crypto.HashAsync(UserPasswrd_Inpt.Text, Convert.FromBase64String(Crypto.Salt)));
                     bool _LoginSuccessful = (bool)await Task.Run(() => Crypto.ComparePassword(_hashedInput));
                     GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, true, true);
                     if (_LoginSuccessful)

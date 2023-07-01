@@ -4,6 +4,9 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Security.Cryptography.Xml;
 using System.Text;
+using System.Windows.Forms.VisualStyles;
+using System.Windows.Shapes;
+using Windows.Media.AppBroadcasting;
 
 #pragma warning disable
 namespace File_Protector
@@ -20,6 +23,8 @@ namespace File_Protector
         private static bool isAnimating;
         private static bool creatingKey;
         private static bool derivingKey;
+        private static string checksum = string.Empty;
+        private static string openedFile = string.Empty;
         public Homepage()
         {
             InitializeComponent();
@@ -49,7 +54,7 @@ namespace File_Protector
             byte[] result = Crypto.Decrypt(DataConversionHelpers.Base64StringToByteArray(data), key);
             if (result == null)
                 return null;
-            return DataConversionHelpers.ByteArrayToString(result);
+              return DataConversionHelpers.ByteArrayToString(result);
         }
 
         private void openFile_Click(object sender, EventArgs e)
@@ -64,19 +69,20 @@ namespace File_Protector
                 RestoreDirectory = true
             };
 
-            openFileDialog.InitialDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "User Data", "User Files", AuthenticateUser.CurrentLoggedInUser);
+            openFileDialog.InitialDirectory = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "User Data", "User Files", AuthenticateUser.CurrentLoggedInUser);
 
             if (openFileDialog.ShowDialog() != DialogResult.OK)
                 return;
 
             fileName = openFileDialog.FileName;
+            openedFile = fileName;
             var fileInfo = new FileInfo(fileName);
 
             try
             {
                 const int maxSize = 800_000_000;
 
-                if (!Path.GetExtension(fileName).Equals(".txt", StringComparison.OrdinalIgnoreCase) || fileInfo.Length > maxSize)
+                if (!System.IO.Path.GetExtension(fileName).Equals(".txt", StringComparison.OrdinalIgnoreCase) || fileInfo.Length > maxSize)
                     throw new ArgumentException("Invalid file type or size.");
 
                 loadedFile = Encoding.UTF8.GetString(File.ReadAllBytes(fileName));
@@ -99,11 +105,6 @@ namespace File_Protector
                 currentStatusLbl.ForeColor = errorColor;
             }
         }
-        private void genKeyBtn_Click(object sender, EventArgs e)
-        {
-            passwordOutputTxt.Clear();
-            passwordOutputTxt.Text = Crypto.GenerateRndPassword();
-        }
         private void Homepage_Load(object sender, EventArgs e)
         {
             if (!worker.IsBusy)
@@ -119,6 +120,7 @@ namespace File_Protector
                 Thread.Sleep(150);
             }
         }
+
         private void encryptBtn_Click(object sender, EventArgs e)
         {
             string? inputString = loadedFile;
@@ -127,7 +129,6 @@ namespace File_Protector
 
             try
             {
-                Task<string?> encryptedID = Crypto.HashAndDeriveAsync(inputString, Crypto.RndByteSized(256 / 8));
                 GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, true, true);
                 if (string.IsNullOrEmpty(keyString))
                     throw new ArgumentException("Key value was empty or null.", nameof(Key));
@@ -142,8 +143,9 @@ namespace File_Protector
                 if (string.IsNullOrEmpty(encryptData))
                     throw new Exception("Encryption value returned empty or null.");
 
+                File.SetAttributes(openedFile, FileAttributes.ReadOnly);
                 currentStatusLbl.Text = "File Encrypted! New byte size: " + loadedFile.Length + " bytes!";
-                MessageBox.Show($"File encrypted successfully. New byte size: {loadedFile.Length} bytes!");
+                MessageBox.Show($"File encrypted successfully. New byte size: {loadedFile.Length} bytes!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
@@ -166,8 +168,9 @@ namespace File_Protector
                 string decryptedData = Decrypt(inputData, Key);
                 loadedFile = decryptedData;
 
+                File.SetAttributes(openedFile, FileAttributes.ReadOnly);
                 currentStatusLbl.Text = "File Decrypted! New byte size: " + loadedFile.Length + " bytes!";
-                MessageBox.Show($"File decrypted successfully. New byte size: {loadedFile.Length} bytes!");
+                MessageBox.Show($"File decrypted successfully. New byte size: {loadedFile.Length} bytes!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
             }
             catch (Exception ex)
@@ -176,6 +179,7 @@ namespace File_Protector
                 return;
             }
         }
+
 
         private void saveFile_Click(object sender, EventArgs e)
         {
@@ -190,7 +194,7 @@ namespace File_Protector
                     FilterIndex = 1,
                     ShowHiddenFiles = true,
                     RestoreDirectory = true,
-                    InitialDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "User Data", "User Files", AuthenticateUser.CurrentLoggedInUser)
+                    InitialDirectory = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "User Data", "User Files", AuthenticateUser.CurrentLoggedInUser)
                 };
 
                 if (saveFileDialog.ShowDialog() == DialogResult.OK)
@@ -211,7 +215,6 @@ namespace File_Protector
                     currentStatusLbl.ForeColor = Color.WhiteSmoke;
                     loadedFile = null;
                     fileOpened = false;
-
                 }
             }
             catch (Exception ex)
@@ -229,7 +232,7 @@ namespace File_Protector
         }
         private static bool CheckPasswordValidity(string password, string password2)
         {
-            return password.Length >= 8 && password.Length <= 32
+            return password.Length >= 8 && password.Length <= 64
        && password.Any(char.IsUpper) && password.Any(char.IsLower) && password.Any(char.IsDigit)
        && !password.Contains(' ') && password == password2
        && (password.Any(char.IsSymbol) || password.Any(char.IsPunctuation));
@@ -242,9 +245,12 @@ namespace File_Protector
                     throw new ArgumentException("Value returned null or empty.", nameof(createPassTxt));
 
                 if (!CheckPasswordValidity(createPassTxt.Text, confirmPasswordTxt.Text))
-                    throw new ArgumentException("Invalid password.");
+                    throw new ArgumentException("Password must contain between 8 and 64 characters. " +
+                         "It also must include:\n1.) At least one uppercase letter.\n2.) At least one lowercase letter.\n" +
+                         "3.) At least one number.\n4.) At least one special character.\n5.) Must not contain any spaces.\n" +
+                         "6.) Both passwords must match.\n", nameof(createPassTxt));
 
-                var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "User Data", "User Data", "UserKeys.txt");
+                var path = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "User Data", "User Data", "UserKeys.txt");
                 string header = @"=========////(DO NOT modify this file as doing so may cause a loss of data.)\\\\=========";
 
                 if (!File.Exists(path))
@@ -252,8 +258,8 @@ namespace File_Protector
                 creatingKey = true;
                 StartAnimation();
                 UserSalt = DataConversionHelpers.ByteArrayToBase64String(Crypto.RndByteSized(Crypto.SaltSize));
-                UserKey = await Crypto.HashAndDeriveAsync(createPassTxt.Text, DataConversionHelpers.Base64StringToByteArray(UserSalt));
-                UserEncryptedKey = await Crypto.HashAndDeriveAsync(UserKey, DataConversionHelpers.Base64StringToByteArray(UserSalt));
+                UserKey = await Crypto.DeriveAsync(createPassTxt.Text, DataConversionHelpers.Base64StringToByteArray(UserSalt));
+                UserEncryptedKey = await Crypto.DeriveAsync(UserKey, DataConversionHelpers.Base64StringToByteArray(UserSalt));
                 GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, true, true);
                 string userName = AuthenticateUser.CurrentLoggedInUser;
                 string[] lines = File.ReadAllLines(path);
@@ -284,8 +290,8 @@ namespace File_Protector
             try
             {
                 var appDataFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                var rootFolder = Path.Combine(appDataFolderPath, "User Data");
-                var path = Path.Combine(appDataFolderPath, rootFolder, "User Data", "UserKeys.txt");
+                var rootFolder = System.IO.Path.Combine(appDataFolderPath, "User Data");
+                var path = System.IO.Path.Combine(appDataFolderPath, rootFolder, "User Data", "UserKeys.txt");
 
                 if (!File.Exists(path))
                     throw new ArgumentException("Invalid file path.", nameof(path));
@@ -337,8 +343,8 @@ namespace File_Protector
                 creatingKey = false;
                 derivingKey = true;
                 StartAnimation();
-                string? derivedKey = await Crypto.HashAndDeriveAsync(enteredPassword, DataConversionHelpers.Base64StringToByteArray(UserSalt));
-                string? derivedCompareKey = await Crypto.HashAndDeriveAsync(derivedKey, DataConversionHelpers.Base64StringToByteArray(UserSalt));
+                string? derivedKey = await Crypto.DeriveAsync(enteredPassword, DataConversionHelpers.Base64StringToByteArray(UserSalt));
+                string? derivedCompareKey = await Crypto.DeriveAsync(derivedKey, DataConversionHelpers.Base64StringToByteArray(UserSalt));
                 GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, true, true);
 
                 if (derivedCompareKey == UserEncryptedKey)

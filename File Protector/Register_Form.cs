@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using System.Text;
 
 #pragma warning disable
 namespace File_Protector
@@ -11,7 +10,6 @@ namespace File_Protector
             InitializeComponent();
         }
         private static bool isAnimating;
-  
         public static bool UserExists(string userName)
         {
             string path = GetUserInfoFilePath();
@@ -23,7 +21,7 @@ namespace File_Protector
 
         private static bool CheckPasswordValidity(string password, string password2)
         {
-            if (password.Length < 8 || password.Length > 32)
+            if (password.Length < 8 || password.Length > 64)
                 return false;
 
             if (!password.Any(char.IsUpper) || !password.Any(char.IsLower) || !password.Any(char.IsDigit))
@@ -50,18 +48,24 @@ namespace File_Protector
                 File.WriteAllText(filePath, header + "\n");
             }
 
+            File.SetAttributes(filePath, FileAttributes.ReadOnly);
             bool exists = AuthenticateUser.UserExists(userTxt.Text);
             try
             {
                 if (!exists)
                 {
                     StartAnimation();
+                    if (!CheckPasswordValidity(passTxt.Text, confirmPassTxt.Text))
+                        throw new ArgumentException("Password must contain between 8 and 64 characters. " +
+                         "It also must include:\n1.) At least one uppercase letter.\n2.) At least one lowercase letter.\n" +
+                         "3.) At least one number.\n4.) At least one special character.\n5.) Must not contain any spaces.\n" +
+                         "6.) Both passwords must match.\n", nameof (passTxt));
                     byte[] salt = Crypto.RndByteSized(Crypto.SaltSize);
-                    string hashPassword = await Crypto.HashAndDeriveAsync(passTxt.Text, salt);
-                    string saltString = DataConversionHelpers.ByteArrayToBase64String(salt);
+                    string hashPassword = await Crypto.HashAsync(passTxt.Text, salt);
                     GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, true, true);
+                    string saltString = DataConversionHelpers.ByteArrayToBase64String(salt);
                     File.AppendAllText(filePath, $"\nUser:\n{userTxt.Text}\nSalt:\n{saltString.Trim()}\nHash:\n{hashPassword.Trim()}\n");
-
+                    isAnimating = false;
                     DialogResult dialogResult = MessageBox.Show("Registration successful! Make sure you do NOT forget your password or you will lose access " +
                         "to all of your files.", "Registration Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
@@ -118,7 +122,7 @@ namespace File_Protector
 
                 if (!CheckPasswordValidity(passTxt.Text, confirmPassTxt.Text))
                 {
-                    throw new ArgumentException("Password must contain between 8 and 32 characters. " +
+                    throw new ArgumentException("Password must contain between 8 and 64 characters. " +
                         "It also must include:\n1.) At least one uppercase letter.\n2.) At least one lowercase letter.\n" +
                         "3.) At least one number.\n4.) At least one special character.\n5.) Must not contain any spaces.\n" +
                         "6.) Both passwords must match.\n", nameof(passTxt));

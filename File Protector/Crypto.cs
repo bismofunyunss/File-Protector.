@@ -5,13 +5,37 @@ using Konscious.Security.Cryptography;
 
 public static class Crypto
 {
-    private static readonly int ByteSize = 24;
+    public static readonly int ByteSize = 24; // 48 bit hex string
+    public static readonly int KeySize = 16; // 32 bit hex string
     private const int Iterations = 50;
     private const double MemorySize = 1024 * 1024 * 10; // 10GiB
     public static readonly int SaltSize = 384 / 8; // 64 Bit
     public static string Salt { get; set; } = string.Empty;
     public static string Hash { get; set; } = string.Empty;
-    public static async Task<string?> HashAndDeriveAsync(string password, byte[] salt)
+    public static string? checkSum { get; set; } = string.Empty;
+    public static async Task<string?> HashAsync(string password, byte[] salt)
+    {
+        using var argon2 = new Argon2id(Encoding.UTF8.GetBytes(password))
+        {
+            Salt = salt, // 64 bit
+            DegreeOfParallelism = Environment.ProcessorCount, //Maximum cores
+            Iterations = Iterations, // 50 Iterations
+            MemorySize = (int)MemorySize //explicitly cast MemorySize from double to int                                 
+        };
+        try
+        {
+            string result = string.Empty;
+            result = Convert.ToHexString(await argon2.GetBytesAsync(ByteSize).ConfigureAwait(false));
+            return result;
+        }
+        catch (CryptographicException ex)
+        {
+            MessageBox.Show(ex.Message);
+            ErrorLogging.ErrorLog(ex);
+            return null;
+        }
+    }
+    public static async Task<string?> DeriveAsync(string password, byte[] salt)
     {
         using var argon2 = new Argon2id(Encoding.UTF8.GetBytes(password))
         {
@@ -22,15 +46,9 @@ public static class Crypto
         };
         try
         {
-            bool complete = false;
             string result = string.Empty;
-            while (!complete)
-            {
-                GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, true, true);
-                result = Convert.ToHexString(await argon2.GetBytesAsync(ByteSize).ConfigureAwait(false));
-                if (!string.IsNullOrEmpty(result))
-                    break;
-            }
+
+            result = Convert.ToHexString(await argon2.GetBytesAsync(KeySize).ConfigureAwait(false));
             return result;
         }
         catch (CryptographicException ex)
@@ -40,7 +58,6 @@ public static class Crypto
             return null;
         }
     }
-   
     public static async Task<bool?> ComparePassword(string hash)
     {
         if (Hash != null)
@@ -54,21 +71,30 @@ public static class Crypto
         return null;
        // return Hash != null && CryptographicOperations.FixedTimeEquals(Convert.FromHexString(Hash), Convert.FromHexString(hash));
     }
-
-    private static readonly RandomNumberGenerator rndNum = RandomNumberGenerator.Create();
-    public static string? GenerateRndPassword()
+    private static string GetUserInfoFilePath()
     {
-        int len = 18;
-        StringBuilder stringBuilder = new StringBuilder();
-        string chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()-_=+[{]};:'\"<\\,.>/?";
-
-        for (int i = 0; i < len; i++)
-        {
-            int index = BoundedInt(0, chars.Length);
-            stringBuilder.Append(chars[index]);
-        }
-        return stringBuilder.ToString();
+        var _appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        var _rootFolder = Path.Combine(_appData, "User Data");
+        var path = Path.Combine(_appData, _rootFolder, "User Data", "UserInfo.txt");
+        return path;
     }
+    public static string? ComputeChecksum(string File)
+    {
+        using (SHA512 algorithm = SHA512.Create())
+        {
+            using (var fs = new FileStream(GetUserInfoFilePath(), FileMode.Open, FileAccess.Read))
+            {
+                string? hex = string.Empty;
+                byte[] checksum = algorithm.ComputeHash(fs);
+                hex = DataConversionHelpers.ByteArrayToHexString(checksum);
+                if (hex != null)
+                    return hex;
+            }
+            return null;
+        }
+    }
+    private static readonly RandomNumberGenerator rndNum = RandomNumberGenerator.Create();
+
     private static int RndInt()
     {
         byte[] buffer = new byte[(sizeof(int))];
@@ -103,7 +129,6 @@ public static class Crypto
             byte[] iv = RndByteSized(IVBit / 8);
             SaltBytes = RndByteSized(SaltBitSize / 8);
             byte[] cipherText;
-
             using (Aes aes = Aes.Create())
             {
                 aes.BlockSize = BlockBitSize;
@@ -121,6 +146,7 @@ public static class Crypto
                     }
                     cipherText = memStream.ToArray();
                 }
+
             }
             Key = null;
             byte[] prependItems = new byte[iv.Length + SaltBytes.Length + cipherText.Length];
@@ -155,6 +181,7 @@ public static class Crypto
                 aes.Padding = PaddingMode.PKCS7;
 
                 var IV = new byte[IVBit / 8];
+
                 Buffer.BlockCopy(CipherText, 0, IV, 0, IV.Length);
 
                 var ciphertextOffset = SaltBytes.Length + IV.Length;
@@ -179,7 +206,6 @@ public static class Crypto
             Key = null;
             ErrorLogging.ErrorLog(ex);
             string error = ex.Message + " " + ex.InnerException;
-            MessageBox.Show(error, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return null;
         }
 #pragma warning restore

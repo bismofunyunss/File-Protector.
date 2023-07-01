@@ -10,9 +10,9 @@ Argon2ID Parameters used:
 
 Iterations: 50
 Parallelism: All CPU cores of machine
-Memory: 8MB
-Salt Size: 64 Bytes
-Hash Output Size: 32 Bytes
+Memory: 10GiB
+Salt Size: 48 Bytes
+Hash Output Size: 24 Bytes
 
 Usage
 -----
