@@ -1,12 +1,7 @@
 ﻿using System.ComponentModel;
-using System.Data.SqlTypes;
 using System.IO;
 using System.Security.Cryptography;
-using System.Security.Cryptography.Xml;
 using System.Text;
-using System.Windows.Forms.VisualStyles;
-using System.Windows.Shapes;
-using Windows.Media.AppBroadcasting;
 
 #pragma warning disable
 namespace File_Protector
@@ -24,7 +19,6 @@ namespace File_Protector
         private static bool creatingKey;
         private static bool derivingKey;
         private static string checksum = string.Empty;
-        private static string openedFile = string.Empty;
         public Homepage()
         {
             InitializeComponent();
@@ -54,7 +48,7 @@ namespace File_Protector
             byte[] result = Crypto.Decrypt(DataConversionHelpers.Base64StringToByteArray(data), key);
             if (result == null)
                 return null;
-              return DataConversionHelpers.ByteArrayToString(result);
+            return DataConversionHelpers.ByteArrayToString(result);
         }
 
         private void openFile_Click(object sender, EventArgs e)
@@ -75,7 +69,6 @@ namespace File_Protector
                 return;
 
             fileName = openFileDialog.FileName;
-            openedFile = fileName;
             var fileInfo = new FileInfo(fileName);
 
             try
@@ -136,6 +129,8 @@ namespace File_Protector
                 if (string.IsNullOrEmpty(inputString))
                     throw new ArgumentException("Input value was empty or null.", nameof(inputString));
 
+                checksum = Crypto.ComputeChecksum(inputString + DataConversionHelpers.ByteArrayToString(Key));
+                inputString = inputString + $"\n\nChecksum: {checksum.ToUpper()}";
                 string? encryptData = Encrypt(inputString, Key);
                 loadedFile = encryptData;
 
@@ -143,7 +138,6 @@ namespace File_Protector
                 if (string.IsNullOrEmpty(encryptData))
                     throw new Exception("Encryption value returned empty or null.");
 
-                File.SetAttributes(openedFile, FileAttributes.ReadOnly);
                 currentStatusLbl.Text = "File Encrypted! New byte size: " + loadedFile.Length + " bytes!";
                 MessageBox.Show($"File encrypted successfully. New byte size: {loadedFile.Length} bytes!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
@@ -168,7 +162,7 @@ namespace File_Protector
                 string decryptedData = Decrypt(inputData, Key);
                 loadedFile = decryptedData;
 
-                File.SetAttributes(openedFile, FileAttributes.ReadOnly);
+
                 currentStatusLbl.Text = "File Decrypted! New byte size: " + loadedFile.Length + " bytes!";
                 MessageBox.Show($"File decrypted successfully. New byte size: {loadedFile.Length} bytes!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
 

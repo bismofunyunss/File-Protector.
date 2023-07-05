@@ -48,7 +48,6 @@ namespace File_Protector
                 File.WriteAllText(filePath, header + "\n");
             }
 
-            File.SetAttributes(filePath, FileAttributes.ReadOnly);
             bool exists = AuthenticateUser.UserExists(userTxt.Text);
             try
             {

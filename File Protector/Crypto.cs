@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using System.Windows.Input;
 using Konscious.Security.Cryptography;
 
 public static class Crypto
@@ -60,39 +61,15 @@ public static class Crypto
     }
     public static async Task<bool?> ComparePassword(string hash)
     {
-        if (Hash != null)
-        {
-            return await Task.Run(() =>
-            {
-                return CryptographicOperations.FixedTimeEquals(DataConversionHelpers.HexStringToByteArray( hash), DataConversionHelpers.HexStringToByteArray(Hash));
-            }).ConfigureAwait(false);
-        }
+        return await Task.FromResult(Hash != null && CryptographicOperations.FixedTimeEquals(Convert.FromHexString(Hash), Convert.FromHexString(hash))).ConfigureAwait(false);
+    }
+    public static string ComputeChecksum(string input)
+    {
+        byte[] hashValue = SHA512.HashData(Encoding.UTF8.GetBytes(input));
+        string checksum = DataConversionHelpers.ByteArrayToHexString(hashValue) ?? string.Empty;
+        return checksum;
+    }
 
-        return null;
-       // return Hash != null && CryptographicOperations.FixedTimeEquals(Convert.FromHexString(Hash), Convert.FromHexString(hash));
-    }
-    private static string GetUserInfoFilePath()
-    {
-        var _appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        var _rootFolder = Path.Combine(_appData, "User Data");
-        var path = Path.Combine(_appData, _rootFolder, "User Data", "UserInfo.txt");
-        return path;
-    }
-    public static string? ComputeChecksum(string File)
-    {
-        using (SHA512 algorithm = SHA512.Create())
-        {
-            using (var fs = new FileStream(GetUserInfoFilePath(), FileMode.Open, FileAccess.Read))
-            {
-                string? hex = string.Empty;
-                byte[] checksum = algorithm.ComputeHash(fs);
-                hex = DataConversionHelpers.ByteArrayToHexString(checksum);
-                if (hex != null)
-                    return hex;
-            }
-            return null;
-        }
-    }
     private static readonly RandomNumberGenerator rndNum = RandomNumberGenerator.Create();
 
     private static int RndInt()
@@ -117,8 +94,6 @@ public static class Crypto
         return buffer;
     }
 #pragma warning disable
-    private const int SaltBitSize = 512;
-    private static byte[] SaltBytes = new byte[SaltBitSize / 8];
     private const int BlockBitSize = 128;
     private const int KeyBitSize = 256;
     private const int IVBit = 128;
@@ -127,7 +102,6 @@ public static class Crypto
         try
         {
             byte[] iv = RndByteSized(IVBit / 8);
-            SaltBytes = RndByteSized(SaltBitSize / 8);
             byte[] cipherText;
             using (Aes aes = Aes.Create())
             {
@@ -146,14 +120,11 @@ public static class Crypto
                     }
                     cipherText = memStream.ToArray();
                 }
-
             }
             Key = null;
-            byte[] prependItems = new byte[iv.Length + SaltBytes.Length + cipherText.Length];
+            byte[] prependItems = new byte[iv.Length + cipherText.Length];
             Buffer.BlockCopy(iv, 0, prependItems, 0, iv.Length);
-            Buffer.BlockCopy(SaltBytes, 0, prependItems, iv.Length, SaltBytes.Length);
-            Buffer.BlockCopy(cipherText, 0, prependItems, iv.Length + SaltBytes.Length, cipherText.Length);
-
+            Buffer.BlockCopy(cipherText, 0, prependItems, iv.Length, cipherText.Length);
             return prependItems;
         }
         catch (Exception ex)
@@ -184,8 +155,8 @@ public static class Crypto
 
                 Buffer.BlockCopy(CipherText, 0, IV, 0, IV.Length);
 
-                var ciphertextOffset = SaltBytes.Length + IV.Length;
-                var cipherResult = new byte[CipherText.Length - SaltBytes.Length - IV.Length];
+                var ciphertextOffset = IV.Length;
+                var cipherResult = new byte[CipherText.Length - IV.Length];
                 Buffer.BlockCopy(CipherText, ciphertextOffset, cipherResult, 0, cipherResult.Length);
 
                 using (var decryptor = aes.CreateDecryptor(Key, IV))
